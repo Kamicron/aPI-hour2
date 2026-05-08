@@ -1,0 +1,12 @@
+# Exemple de fichier de configuration pour le développement local
+# Copiez ce fichier en application-dev.properties et remplissez avec vos vraies valeurs
+# IMPORTANT: Ne commitez JAMAIS application-dev.properties dans Git !
+
+# Configuration de la base de données
+DB_URL=jdbc:mysql://localhost:3306/apihour
+DB_USERNAME=votre_username
+DB_PASSWORD=votre_mot_de_passe
+
+# Configuration JPA (optionnel)
+DB_DDL_AUTO=update
+DB_SHOW_SQL=true
