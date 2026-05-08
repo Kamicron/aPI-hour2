@@ -1,2 +1,8 @@
 **/frontend/node_modules
 /.vscode
+
+# Backend - Fichiers sensibles
+**/backend/src/main/resources/application-dev.properties
+**/backend/src/main/resources/application-prod.properties
+**/backend/target/
+**/.env
