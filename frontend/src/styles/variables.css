@@ -74,13 +74,13 @@
 
 [data-theme="dark"] {
   /* Colors - Dark Mode */
-  --color-primary: #4a9eff;
-  --color-primary-hover: #6bb0ff;
-  --color-secondary: #8b95a1;
-  --color-success: #4ade80;
-  --color-danger: #f87171;
-  --color-warning: #fbbf24;
-  --color-info: #38bdf8;
+  --color-primary: #0B5DFA;
+  --color-primary-hover: #0056b3;
+  --color-secondary: #7D34DE;
+  --color-success: #2CC050;
+  --color-danger: #FD2C2B;
+  --color-warning: #FF940B;
+  --color-info: #17a2b8;
 
   /* Background Colors */
   --bg-primary: #1a1a1a;
