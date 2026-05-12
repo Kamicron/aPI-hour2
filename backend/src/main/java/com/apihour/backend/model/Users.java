@@ -1,12 +1,18 @@
 package com.apihour.backend.model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+
+import java.util.Date;
+import java.util.UUID;
 
 @Entity
 public class Users {
   @Id
-  @GeneratedValue
+  @GeneratedValue(strategy = GenerationType.AUTO)
   private UUID id;
   private String name;
   private String email;
