@@ -3,10 +3,10 @@
 # IMPORTANT: Ne commitez JAMAIS application-dev.properties dans Git !
 
 # Configuration de la base de données
-DB_URL=jdbc:mysql://localhost:3306/apihour
-DB_USERNAME=votre_username
-DB_PASSWORD=votre_mot_de_passe
+spring.datasource.url=jdbc:mysql://db.pi-cto.top:3306/aPi-hour
+spring.datasource.username=votre_username
+spring.datasource.password=votre_mot_de_passe
 
-# Configuration JPA (optionnel)
-DB_DDL_AUTO=update
-DB_SHOW_SQL=true
+# Configuration JPA (optionnel - déjà défini dans application.properties)
+# spring.jpa.hibernate.ddl-auto=update
+# spring.jpa.show-sql=true
