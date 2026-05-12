@@ -122,6 +122,12 @@ mvn spring-boot:run
 Le serveur backend sera accessible sur **http://localhost:8080**
 
 **Endpoints API disponibles :**
+
+**Authentification (publics) :**
+- `POST /api/auth/register` - Inscription d'un nouvel utilisateur
+- `POST /api/auth/login` - Connexion (retourne un token JWT)
+
+**Utilisateurs (protégés) :**
 - `GET /api/users` - Liste tous les utilisateurs
 - `GET /api/users/{id}` - Récupère un utilisateur par ID
 - `POST /api/users` - Crée un nouvel utilisateur
@@ -185,6 +191,7 @@ Les fichiers de production seront générés dans `frontend/dist/`
 
 ### Backend
 - **Spring Boot 4.0.6**
+- **Spring Security** (avec JWT)
 - **Spring Data JPA**
 - **MySQL Connector**
 - **Hibernate**
@@ -192,8 +199,9 @@ Les fichiers de production seront générés dans `frontend/dist/`
 
 ### Frontend
 - **React 18.3.1**
+- **React Router DOM 7.15.0**
 - **Vite 5.4.0**
-- **Axios 1.13.2**
+- **Axios 1.13.2** (avec intercepteurs JWT)
 - **Vitest 2.0.0**
 
 ## 📝 Structure du projet
