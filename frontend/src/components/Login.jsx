@@ -28,13 +28,24 @@ export default function Login() {
 
   return (
     <div>
-      <h2>Login</h2>
+      <h2>
+        <span className="material-icons">login</span>
+        Login
+      </h2>
 
-      {error && <div>{error}</div>}
+      {error && (
+        <div>
+          <span className="material-icons">error</span>
+          {error}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit}>
         <div>
-          <label>Email</label>
+          <label>
+            <span className="material-icons">email</span>
+            Email
+          </label>
           <input
             type="email"
             value={email}
@@ -45,7 +56,10 @@ export default function Login() {
         </div>
 
         <div>
-          <label>Password</label>
+          <label>
+            <span className="material-icons">lock</span>
+            Password
+          </label>
           <input
             type="password"
             value={password}
@@ -56,7 +70,17 @@ export default function Login() {
         </div>
 
         <button type="submit" disabled={loading}>
-          {loading ? 'Loading...' : 'Login'}
+          {loading ? (
+            <>
+              <span className="material-icons">hourglass_empty</span>
+              Loading...
+            </>
+          ) : (
+            <>
+              <span className="material-icons">arrow_forward</span>
+              Login
+            </>
+          )}
         </button>
       </form>
 
