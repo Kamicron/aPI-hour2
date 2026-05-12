@@ -69,19 +69,43 @@ mvn clean install
 
 ### 3. Configuration Frontend
 
-#### Variables d'environnement (optionnel)
+#### Variables d'environnement
 
-Si nécessaire, créez un fichier `.env` dans le dossier `frontend` :
+**🔒 Sécurité de la configuration**
 
-```env
-VITE_API_URL=http://localhost:8080/api
+L'URL de l'API backend ne doit **JAMAIS** être hardcodée. Le fichier `.env` est ignoré par Git et contient votre configuration locale.
+
+**Étapes de configuration :**
+
+1. **Copiez le fichier d'exemple** :
+```bash
+cd frontend
+cp .env.example .env
 ```
+
+2. **Modifiez `.env`** avec votre URL d'API :
+```env
+VITE_API_BASE_URL=http://localhost:8080/api
+```
+
+3. **Vérifiez que `.gitignore` contient** :
+```
+.env
+.env.local
+.env.*.local
+```
+
+**⚠️ IMPORTANT :** 
+- `.env` = Votre vraie configuration (ignoré par Git)
+- `.env.example` = Fichier template (commité dans Git)
 
 #### Installation des dépendances
 
 ```bash
 cd frontend
 npm install
+# ou
+yarn install
 ```
 
 ## 🏃 Lancement de l'application
@@ -180,16 +204,28 @@ aPI-hour2/
 │   ├── src/
 │   │   ├── main/
 │   │   │   ├── java/com/apihour/backend/
+│   │   │   │   ├── config/         # Configuration (Security, CORS, JWT)
 │   │   │   │   ├── controller/     # Contrôleurs REST
+│   │   │   │   ├── filter/         # Filtres JWT
 │   │   │   │   ├── model/          # Entités JPA
 │   │   │   │   ├── repository/     # Repositories JPA
 │   │   │   │   └── service/        # Logique métier
 │   │   │   └── resources/
-│   │   │       └── application.properties
+│   │   │       ├── application.properties (ignoré par Git)
+│   │   │       └── application.properties.example
 │   │   └── test/
 │   └── pom.xml
 ├── frontend/
 │   ├── src/
+│   │   ├── api/                    # Configuration Axios
+│   │   ├── components/             # Composants React (Login, Register, etc.)
+│   │   ├── context/                # Context API (AuthContext)
+│   │   ├── services/               # Services API
+│   │   ├── App.jsx
+│   │   └── index.jsx
+│   ├── .env (ignoré par Git)
+│   ├── .env.example
+│   ├── .gitignore
 │   ├── package.json
 │   └── vite.config.js
 └── README.md
