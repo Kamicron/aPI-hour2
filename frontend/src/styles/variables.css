@@ -1,0 +1,113 @@
+:root {
+  /* Colors - Light Mode */
+  --color-primary: #0B5DFA;
+  --color-primary-hover: #0056b3;
+  --color-secondary: #7D34DE;
+  --color-success: #2CC050;
+  --color-danger: #FD2C2B;
+  --color-warning: #FF940B;
+  --color-info: #17a2b8;
+
+  /* Background Colors */
+  --bg-primary: #FEFDFD;
+  --bg-secondary: #FAFBFD;
+  --bg-tertiary: #F5F7F8;
+
+  /* Text Colors */
+  --text-primary: #1B232D;
+  --text-secondary: #636F83;
+  --text-tertiary: #adb5bd;
+  --text-inverse: #ffffff;
+
+  /* Border Colors */
+  --border-color: #dee2e6;
+  --border-color-light: #e9ecef;
+
+  /* Shadow */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+
+  /* Typography */
+  --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  --font-family-mono: 'Courier New', Courier, monospace;
+
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+  --font-size-4xl: 2.25rem;
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+
+  /* Spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+  --spacing-3xl: 4rem;
+
+  /* Border Radius */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-full: 9999px;
+
+  /* Transitions */
+  --transition-fast: 150ms ease-in-out;
+  --transition-base: 200ms ease-in-out;
+  --transition-slow: 300ms ease-in-out;
+}
+
+[data-theme="dark"] {
+  /* Colors - Dark Mode */
+  --color-primary: #4a9eff;
+  --color-primary-hover: #6bb0ff;
+  --color-secondary: #8b95a1;
+  --color-success: #4ade80;
+  --color-danger: #f87171;
+  --color-warning: #fbbf24;
+  --color-info: #38bdf8;
+
+  /* Background Colors */
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #2d2d2d;
+  --bg-tertiary: #3d3d3d;
+
+  /* Text Colors */
+  --text-primary: #f8f9fa;
+  --text-secondary: #adb5bd;
+  --text-tertiary: #6c757d;
+  --text-inverse: #1a1a1a;
+
+  /* Border Colors */
+  --border-color: #3d3d3d;
+  --border-color-light: #2d2d2d;
+
+  /* Shadow */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+}
+
+body {
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+  transition: background-color var(--transition-base), color var(--transition-base);
+}
