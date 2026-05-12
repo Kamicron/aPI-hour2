@@ -45,6 +45,7 @@ public class AuthController {
       return ResponseEntity.badRequest().body("Email already exists");
     }
     user.setPassword(passwordEncoder.encode(user.getPassword()));
+    user.setRole("user");
     return ResponseEntity.ok(userRepository.save(user));
   }
 
