@@ -1,10 +1,11 @@
 .settings-page {
-  max-width: 1200px;
-  margin: 0 auto;
+  padding-bottom: var(--spacing-xs);
 }
+
 
 .settings-header {
   margin-bottom: var(--spacing-2xl);
+  margin-top: var(--spacing-lg);
 }
 
 .settings-header h1 {
@@ -345,7 +346,7 @@
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1000px) {
   .settings-grid {
     grid-template-columns: 1fr;
   }
