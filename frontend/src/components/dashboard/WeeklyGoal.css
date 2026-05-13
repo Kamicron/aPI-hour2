@@ -1,0 +1,115 @@
+.weekly-goal-widget {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg) var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  flex: 1;
+  min-height: 200px;
+}
+
+.weekly-goal-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.weekly-goal-icon {
+  color: var(--color-primary);
+  font-size: 24px;
+}
+
+.weekly-goal-header h3 {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.weekly-goal-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.weekly-goal-stats {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.weekly-goal-hours {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-xs);
+}
+
+.hours-worked {
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  line-height: 1;
+}
+
+.hours-separator {
+  font-size: var(--font-size-2xl);
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+.hours-goal {
+  font-size: var(--font-size-xl);
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+.weekly-goal-percentage {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+}
+
+.weekly-goal-progress {
+  width: 100%;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: var(--radius-full);
+  transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.weekly-goal-message {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .weekly-goal-widget {
+    padding: var(--spacing-md) var(--spacing-lg);
+  }
+
+  .hours-worked {
+    font-size: var(--font-size-3xl);
+  }
+
+  .hours-separator {
+    font-size: var(--font-size-xl);
+  }
+
+  .hours-goal {
+    font-size: var(--font-size-lg);
+  }
+}
