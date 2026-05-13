@@ -22,7 +22,7 @@ public class Users {
   private Date updatedAt;
   private Date deletedAt;
   private Integer weeklyHoursGoal;
-  private Integer workingDays;
+  private String workingDays;
   private String resetToken;
   private Date resetTokenExpiry;
   private Boolean emailVerified;
@@ -33,7 +33,7 @@ public class Users {
   public Users() {
   }
 
-  public Users(String name, String email, String password, String role, Integer weeklyHoursGoal, Integer workingDays) {
+  public Users(String name, String email, String password, String role, Integer weeklyHoursGoal, String workingDays) {
     this.name = name;
     this.email = email;
     this.password = password;
@@ -111,11 +111,11 @@ public class Users {
     this.weeklyHoursGoal = weeklyHoursGoal;
   }
 
-  public Integer getWorkingDays() {
+  public String getWorkingDays() {
     return workingDays;
   }
 
-  public void setWorkingDays(Integer workingDays) {
+  public void setWorkingDays(String workingDays) {
     this.workingDays = workingDays;
   }
 
