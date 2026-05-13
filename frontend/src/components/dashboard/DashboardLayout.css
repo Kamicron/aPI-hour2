@@ -2,6 +2,7 @@
   display: flex;
   min-height: 100vh;
   background-color: var(--bg-primary);
+  position: relative;
 }
 
 .dashboard-main {
@@ -20,11 +21,19 @@
 }
 
 @media (max-width: 768px) {
+  .dashboard-layout {
+    flex-direction: column;
+  }
+
   .dashboard-main {
     margin-left: 0;
+    padding-top: 0;
+    min-height: auto;
   }
 
   .dashboard-content {
     padding: var(--spacing-lg);
+    padding-bottom: calc(var(--spacing-lg) + 68px);
+    min-height: calc(100vh - 60px - 68px);
   }
 }

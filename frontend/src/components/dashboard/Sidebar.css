@@ -153,3 +153,9 @@
   color: var(--text-primary);
   font-weight: var(--font-weight-medium);
 }
+
+@media (max-width: 768px) {
+  .sidebar {
+    display: none !important;
+  }
+}
