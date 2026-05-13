@@ -2,7 +2,7 @@ import { useState } from 'react';
 import Input from './Input';
 import './LoginForm.css';
 
-export default function LoginForm({ onSubmit, onSwitchToRegister, loading = false }) {
+export default function LoginForm({ onSubmit, onSwitchToRegister, onForgotPassword, loading = false }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -10,6 +10,11 @@ export default function LoginForm({ onSubmit, onSwitchToRegister, loading = fals
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit({ email, password, rememberMe });
+  };
+
+  const handleForgotPassword = (e) => {
+    e.preventDefault();
+    onForgotPassword();
   };
 
   return (
@@ -33,7 +38,7 @@ export default function LoginForm({ onSubmit, onSwitchToRegister, loading = fals
         showToggle={true}
       />
 
-      {/* <div className="login-options">
+      <div className="login-options">
         <label className="remember-me">
           <input
             type="checkbox"

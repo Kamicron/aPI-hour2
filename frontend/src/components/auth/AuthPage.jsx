@@ -130,6 +130,7 @@ export default function AuthPage() {
                   setError('');
                   navigate('/register');
                 }}
+                onForgotPassword={() => setShowForgotPassword(true)}
                 loading={loading}
               />
             ) : (
