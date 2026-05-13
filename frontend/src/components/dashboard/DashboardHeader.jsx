@@ -25,8 +25,8 @@ export default function DashboardHeader() {
   };
 
   const getUserName = () => {
-    if (user?.firstName) {
-      return user.firstName;
+    if (user?.name) {
+      return user.name;
     }
     if (user?.email) {
       return user.email.split('@')[0];
