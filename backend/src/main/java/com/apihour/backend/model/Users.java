@@ -25,6 +25,9 @@ public class Users {
   private Integer workingDays;
   private String resetToken;
   private Date resetTokenExpiry;
+  private Boolean emailVerified;
+  private String verificationToken;
+  private Date verificationTokenExpiry;
 
   // Constructors
   public Users() {
@@ -130,5 +133,29 @@ public class Users {
 
   public void setResetTokenExpiry(Date resetTokenExpiry) {
     this.resetTokenExpiry = resetTokenExpiry;
+  }
+
+  public Boolean getEmailVerified() {
+    return emailVerified;
+  }
+
+  public void setEmailVerified(Boolean emailVerified) {
+    this.emailVerified = emailVerified;
+  }
+
+  public String getVerificationToken() {
+    return verificationToken;
+  }
+
+  public void setVerificationToken(String verificationToken) {
+    this.verificationToken = verificationToken;
+  }
+
+  public Date getVerificationTokenExpiry() {
+    return verificationTokenExpiry;
+  }
+
+  public void setVerificationTokenExpiry(Date verificationTokenExpiry) {
+    this.verificationTokenExpiry = verificationTokenExpiry;
   }
 }
