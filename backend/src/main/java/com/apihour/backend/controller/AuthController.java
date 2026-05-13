@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.apihour.backend.config.JwtUtils;
 import com.apihour.backend.model.Users;
 import com.apihour.backend.repository.UsersRepository;
+import com.apihour.backend.service.EmailService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -30,13 +31,15 @@ public class AuthController {
   private final PasswordEncoder passwordEncoder;
   private final JwtUtils jwtUtils;
   private final AuthenticationManager authenticationManager;
+  private final EmailService emailService;
 
   public AuthController(UsersRepository userRepository, PasswordEncoder passwordEncoder, JwtUtils jwtUtils,
-      AuthenticationManager authenticationManager) {
+      AuthenticationManager authenticationManager, EmailService emailService) {
     this.userRepository = userRepository;
     this.passwordEncoder = passwordEncoder;
     this.jwtUtils = jwtUtils;
     this.authenticationManager = authenticationManager;
+    this.emailService = emailService;
   }
 
   @PostMapping("/register")
