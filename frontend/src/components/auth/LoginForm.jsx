@@ -42,8 +42,10 @@ export default function LoginForm({ onSubmit, onSwitchToRegister, loading = fals
           />
           <span>Se souvenir de moi</span>
         </label>
-        <a href="#" className="forgot-password">Mot de passe oublié ?</a>
-      </div> */}
+        <button type="button" onClick={handleForgotPassword} className="forgot-password">
+          Mot de passe oublié ?
+        </button>
+      </div>
 
       <button type="submit" className="submit-btn" disabled={loading}>
         {loading ? (

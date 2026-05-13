@@ -30,6 +30,16 @@ export default function AuthPage() {
 
     try {
       const response = await authService.login(data.email, data.password);
+
+      // Gérer "Se souvenir de moi"
+      if (data.rememberMe) {
+        localStorage.setItem('rememberMe', 'true');
+        localStorage.setItem('rememberedEmail', data.email);
+      } else {
+        localStorage.removeItem('rememberMe');
+        localStorage.removeItem('rememberedEmail');
+      }
+
       login(response.token, { email: data.email });
       navigate('/dashboard');
     } catch (err) {
