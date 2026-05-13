@@ -9,24 +9,32 @@
 
 .branding-content {
   max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-lg);
 }
 
 .logo {
   display: flex;
+  width: 100%;
+  flex-direction: column;
   align-items: center;
   gap: var(--spacing-md);
-  margin-bottom: var(--spacing-2xl);
+  margin: var(--spacing-l);
+  padding: var(--spacing-lg);
+  border: 5px solid var(--text-secondary);
+  box-shadow: var(--shadow-lg);
+  border-radius: var(--radius-3xl);
 }
 
 .logo-icon {
-  width: 56px;
-  height: 56px;
-  background: linear-gradient(135deg, var(--color-primary) 0%, #0B5DFA 100%);
+  width: 180px;
+  height: 180px;
   border-radius: var(--radius-xl);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--shadow-lg);
 }
 
 .logo-icon .material-icons {
