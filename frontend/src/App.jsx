@@ -6,6 +6,7 @@ import AuthPage from './pages/AuthPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import Dashboard from './pages/Dashboard';
+import Settings from './pages/Settings';
 import ProtectedRoute from './components/ProtectedRoute';
 
 export default function App() {
@@ -24,6 +25,14 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <Settings />
                 </ProtectedRoute>
               }
             />
