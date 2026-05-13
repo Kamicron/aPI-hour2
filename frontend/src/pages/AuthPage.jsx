@@ -45,7 +45,36 @@ export default function AuthPage() {
         localStorage.removeItem('rememberedEmail');
       }
 
-      login(response.token, { email: data.email });
+      // Récupérer les données utilisateur complètes depuis le backend
+      try {
+        const userResponse = await fetch('http://localhost:8080/api/users', {
+          headers: {
+            'Authorization': `Bearer ${response.token}`
+          }
+        });
+
+        if (userResponse.ok) {
+          const users = await userResponse.json();
+          // Trouver l'utilisateur correspondant à l'email
+          const currentUser = users.find(u => u.email.toLowerCase() === data.email.toLowerCase());
+
+          if (currentUser) {
+            console.log('User data loaded:', currentUser);
+            login(response.token, currentUser);
+          } else {
+            // Fallback si l'utilisateur n'est pas trouvé
+            login(response.token, { email: data.email });
+          }
+        } else {
+          // Fallback en cas d'erreur
+          login(response.token, { email: data.email });
+        }
+      } catch (userError) {
+        console.error('Error fetching user data:', userError);
+        // Fallback en cas d'erreur
+        login(response.token, { email: data.email });
+      }
+
       navigate('/dashboard');
     } catch (err) {
       if (err.response?.data?.error === 'EMAIL_NOT_VERIFIED') {
