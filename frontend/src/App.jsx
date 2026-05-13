@@ -4,6 +4,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import Layout from './components/Layout';
 import AuthPage from './pages/AuthPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
+import VerifyEmailPage from './pages/VerifyEmailPage';
 import Dashboard from './pages/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -17,6 +18,7 @@ export default function App() {
             <Route path="/login" element={<AuthPage />} />
             <Route path="/register" element={<AuthPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/verify-email" element={<VerifyEmailPage />} />
             <Route
               path="/dashboard"
               element={

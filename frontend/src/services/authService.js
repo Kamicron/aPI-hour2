@@ -20,4 +20,14 @@ export const authService = {
     const response = await axiosInstance.post('/auth/reset-password', { token, password });
     return response.data;
   },
+
+  async verifyEmail(token) {
+    const response = await axiosInstance.post('/auth/verify-email', { token });
+    return response.data;
+  },
+
+  async resendVerification(email) {
+    const response = await axiosInstance.post('/auth/resend-verification', { email });
+    return response.data;
+  },
 };
