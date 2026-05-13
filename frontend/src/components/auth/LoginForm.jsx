@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Input from './Input';
 import './LoginForm.css';
 
@@ -6,6 +6,16 @@ export default function LoginForm({ onSubmit, onSwitchToRegister, onForgotPasswo
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
+
+  useEffect(() => {
+    const savedEmail = localStorage.getItem('rememberedEmail');
+    const wasRemembered = localStorage.getItem('rememberMe') === 'true';
+
+    if (savedEmail && wasRemembered) {
+      setEmail(savedEmail);
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -66,9 +76,9 @@ export default function LoginForm({ onSubmit, onSwitchToRegister, onForgotPasswo
         )}
       </button>
 
-      <div className="divider">
+      {/* <div className="divider">
         <span>ou</span>
-      </div>
+      </div> */}
 
       <div className="create-account">
         Pas de compte ? <button type="button" onClick={onSwitchToRegister} className="switch-link">Créer un compte</button>
