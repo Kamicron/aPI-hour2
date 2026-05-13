@@ -49,7 +49,15 @@ public class AuthController {
     }
     user.setPassword(passwordEncoder.encode(user.getPassword()));
     user.setRole("user");
-    return ResponseEntity.ok(userRepository.save(user));
+    Users savedUser = userRepository.save(user);
+
+    try {
+      emailService.sendWelcomeEmail(user.getEmail(), user.getName());
+    } catch (Exception e) {
+      logger.error("Failed to send welcome email to: {}", user.getEmail(), e);
+    }
+
+    return ResponseEntity.ok(savedUser);
   }
 
   @PostMapping("/login")
