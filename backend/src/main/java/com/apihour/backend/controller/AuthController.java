@@ -51,20 +51,41 @@ public class AuthController {
     }
     user.setPassword(passwordEncoder.encode(user.getPassword()));
     user.setRole("user");
-    Users savedUser = userRepository.save(user);
+    user.setEmailVerified(false);
+
+    String verificationToken = UUID.randomUUID().toString();
+    Date expiry = new Date(System.currentTimeMillis() + 86400000); // 24 heures
+    user.setVerificationToken(verificationToken);
+    user.setVerificationTokenExpiry(expiry);
+
+    userRepository.save(user);
 
     try {
-      emailService.sendWelcomeEmail(user.getEmail(), user.getName());
+      emailService.sendVerificationEmail(user.getEmail(), user.getName(), verificationToken);
+      logger.info("Verification email sent to: {}", user.getEmail());
     } catch (Exception e) {
-      logger.error("Failed to send welcome email to: {}", user.getEmail(), e);
+      logger.error("Failed to send verification email to: {}", user.getEmail(), e);
     }
 
-    return ResponseEntity.ok(savedUser);
+    Map<String, Object> response = new HashMap<>();
+    response.put("message", "Registration successful. Please check your email to verify your account.");
+    response.put("email", user.getEmail());
+    return ResponseEntity.ok(response);
   }
 
   @PostMapping("/login")
   public ResponseEntity<?> login(@RequestBody Users user) {
     try {
+      Users existingUser = userRepository.findByEmail(user.getEmail());
+
+      if (existingUser != null && !Boolean.TRUE.equals(existingUser.getEmailVerified())) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("error", "EMAIL_NOT_VERIFIED");
+        response.put("message", "Veuillez vérifier votre adresse email avant de vous connecter.");
+        response.put("email", user.getEmail());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+      }
+
       Authentication authentication = authenticationManager.authenticate(
           new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword()));
       if (authentication.isAuthenticated()) {
@@ -87,13 +108,13 @@ public class AuthController {
   @PostMapping("/forgot-password")
   public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> request) {
     String email = request.get("email");
-    
+
     if (email == null || email.isEmpty()) {
       return ResponseEntity.badRequest().body("Email is required");
     }
 
     Users user = userRepository.findByEmail(email);
-    
+
     if (user == null) {
       logger.info("Password reset requested for non-existent email: {}", email);
       return ResponseEntity.ok(Map.of("message", "If the email exists, a reset link has been sent"));
@@ -101,7 +122,7 @@ public class AuthController {
 
     String resetToken = UUID.randomUUID().toString();
     Date expiry = new Date(System.currentTimeMillis() + 3600000);
-    
+
     user.setResetToken(resetToken);
     user.setResetTokenExpiry(expiry);
     userRepository.save(user);
@@ -145,6 +166,75 @@ public class AuthController {
     logger.info("Password successfully reset for user: {}", user.getEmail());
 
     return ResponseEntity.ok(Map.of("message", "Password successfully reset"));
+  }
+
+  @PostMapping("/verify-email")
+  public ResponseEntity<?> verifyEmail(@RequestBody Map<String, String> request) {
+    String token = request.get("token");
+
+    if (token == null || token.isEmpty()) {
+      return ResponseEntity.badRequest().body("Verification token is required");
+    }
+
+    Users user = userRepository.findByVerificationToken(token);
+
+    if (user == null) {
+      return ResponseEntity.badRequest().body("Invalid verification token");
+    }
+
+    if (user.getVerificationTokenExpiry() == null || user.getVerificationTokenExpiry().before(new Date())) {
+      return ResponseEntity.badRequest().body("Verification token has expired");
+    }
+
+    user.setEmailVerified(true);
+    user.setVerificationToken(null);
+    user.setVerificationTokenExpiry(null);
+    userRepository.save(user);
+
+    try {
+      emailService.sendWelcomeEmail(user.getEmail(), user.getName());
+    } catch (Exception e) {
+      logger.error("Failed to send welcome email to: {}", user.getEmail(), e);
+    }
+
+    logger.info("Email verified successfully for user: {}", user.getEmail());
+
+    return ResponseEntity.ok(Map.of("message", "Email verified successfully. You can now log in."));
+  }
+
+  @PostMapping("/resend-verification")
+  public ResponseEntity<?> resendVerification(@RequestBody Map<String, String> request) {
+    String email = request.get("email");
+
+    if (email == null || email.isEmpty()) {
+      return ResponseEntity.badRequest().body("Email is required");
+    }
+
+    Users user = userRepository.findByEmail(email);
+
+    if (user == null) {
+      return ResponseEntity.ok(Map.of("message", "If the email exists, a verification link has been sent"));
+    }
+
+    if (Boolean.TRUE.equals(user.getEmailVerified())) {
+      return ResponseEntity.badRequest().body("Email is already verified");
+    }
+
+    String verificationToken = UUID.randomUUID().toString();
+    Date expiry = new Date(System.currentTimeMillis() + 86400000); // 24 heures
+    user.setVerificationToken(verificationToken);
+    user.setVerificationTokenExpiry(expiry);
+    userRepository.save(user);
+
+    try {
+      emailService.sendVerificationEmail(email, user.getName(), verificationToken);
+      logger.info("Verification email resent to: {}", email);
+    } catch (Exception e) {
+      logger.error("Failed to resend verification email to: {}", email, e);
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to send verification email");
+    }
+
+    return ResponseEntity.ok(Map.of("message", "Verification email sent successfully"));
   }
 
 }
