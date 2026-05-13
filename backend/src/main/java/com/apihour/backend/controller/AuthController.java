@@ -1,7 +1,9 @@
 package com.apihour.backend.controller;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,6 +82,69 @@ public class AuthController {
       logger.error("Authentication error for user: {}", user.getEmail(), e);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Authentication service unavailable");
     }
+  }
+
+  @PostMapping("/forgot-password")
+  public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> request) {
+    String email = request.get("email");
+    
+    if (email == null || email.isEmpty()) {
+      return ResponseEntity.badRequest().body("Email is required");
+    }
+
+    Users user = userRepository.findByEmail(email);
+    
+    if (user == null) {
+      logger.info("Password reset requested for non-existent email: {}", email);
+      return ResponseEntity.ok(Map.of("message", "If the email exists, a reset link has been sent"));
+    }
+
+    String resetToken = UUID.randomUUID().toString();
+    Date expiry = new Date(System.currentTimeMillis() + 3600000);
+    
+    user.setResetToken(resetToken);
+    user.setResetTokenExpiry(expiry);
+    userRepository.save(user);
+
+    try {
+      emailService.sendPasswordResetEmail(email, resetToken);
+    } catch (Exception e) {
+      logger.error("Failed to send password reset email to: {}", email, e);
+    }
+
+    return ResponseEntity.ok(Map.of("message", "If the email exists, a reset link has been sent"));
+  }
+
+  @PostMapping("/reset-password")
+  public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> request) {
+    String token = request.get("token");
+    String newPassword = request.get("password");
+
+    if (token == null || token.isEmpty() || newPassword == null || newPassword.isEmpty()) {
+      return ResponseEntity.badRequest().body("Token and new password are required");
+    }
+
+    Users user = userRepository.findByResetToken(token);
+
+    if (user == null) {
+      return ResponseEntity.badRequest().body("Invalid or expired reset token");
+    }
+
+    if (user.getResetTokenExpiry() == null || user.getResetTokenExpiry().before(new Date())) {
+      user.setResetToken(null);
+      user.setResetTokenExpiry(null);
+      userRepository.save(user);
+      return ResponseEntity.badRequest().body("Reset token has expired");
+    }
+
+    user.setPassword(passwordEncoder.encode(newPassword));
+    user.setResetToken(null);
+    user.setResetTokenExpiry(null);
+    userRepository.save(user);
+
+    logger.info("Password successfully reset for user: {}", user.getEmail());
+
+    return ResponseEntity.ok(Map.of("message", "Password successfully reset"));
   }
 
 }
