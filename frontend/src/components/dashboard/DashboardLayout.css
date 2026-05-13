@@ -20,8 +20,10 @@
 .dashboard-content {
   flex: 1;
   padding: var(--spacing-2xl);
+  padding-bottom: var(--spacing-2xl);
   background-color: var(--bg-secondary);
   min-height: 100%;
+  overflow: auto;
 }
 
 @media (max-width: 768px) {
@@ -37,7 +39,7 @@
 
   .dashboard-content {
     padding: var(--spacing-lg);
-    padding-bottom: calc(var(--spacing-lg) + 68px);
+    padding-bottom: 140px;
     min-height: calc(100vh - 60px - 68px);
   }
 }

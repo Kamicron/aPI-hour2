@@ -26,7 +26,7 @@
 }
 
 .time-tracker-session-card {
-  padding: 32px;
+  padding: 24px 20px;
   background: var(--bg-primary);
   position: relative;
   display: flex;
@@ -39,14 +39,14 @@
   content: '';
   position: absolute;
   right: 0;
-  top: 32px;
-  bottom: 32px;
+  top: 24px;
+  bottom: 24px;
   width: 1px;
   background: var(--border-color, #e5e7eb);
 }
 
 .time-tracker-actions-card {
-  padding: 32px;
+  padding: 24px 20px;
   background: var(--bg-primary);
 }
 
