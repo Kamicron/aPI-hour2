@@ -13,7 +13,7 @@ export default function MobileHeader() {
             alt="aPI-Hour"
           />
         </div>
-        <span className="mobile-logo-text">TimeTrack</span>
+        <p>a<span className="sidebar-logo-text">PI</span>-Hour</p>
       </div>
 
       <div className="mobile-header-actions">
