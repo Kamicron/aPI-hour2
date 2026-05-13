@@ -14,49 +14,49 @@ import java.util.UUID;
 @RequestMapping("/api/users")
 @CrossOrigin(origins = "*")
 public class UserController {
-    
-    @Autowired
-    private UserService userService;
-    
-    @GetMapping
-    public ResponseEntity<List<Users>> getAllUsers() {
-        List<Users> users = userService.getAllUsers();
-        return ResponseEntity.ok(users);
+
+  @Autowired
+  private UserService userService;
+
+  @GetMapping
+  public ResponseEntity<List<Users>> getAllUsers() {
+    List<Users> users = userService.getAllUsers();
+    return ResponseEntity.ok(users);
+  }
+
+  @GetMapping("/{id}")
+  public ResponseEntity<Users> getUserById(@PathVariable UUID id) {
+    return userService.getUserById(id)
+        .map(ResponseEntity::ok)
+        .orElse(ResponseEntity.notFound().build());
+  }
+
+  @PostMapping
+  public ResponseEntity<Users> createUser(@RequestBody Users user) {
+    try {
+      Users createdUser = userService.createUser(user);
+      return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
+    } catch (IllegalArgumentException e) {
+      return ResponseEntity.badRequest().build();
     }
-    
-    @GetMapping("/{id}")
-    public ResponseEntity<Users> getUserById(@PathVariable UUID id) {
-        return userService.getUserById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+  }
+
+  @PutMapping("/{id}")
+  public ResponseEntity<Users> updateUser(@PathVariable UUID id, @RequestBody Users user) {
+    try {
+      Users updatedUser = userService.updateUser(id, user);
+      return ResponseEntity.ok(updatedUser);
+    } catch (IllegalArgumentException e) {
+      return ResponseEntity.notFound().build();
     }
-    
-    @PostMapping
-    public ResponseEntity<Users> createUser(@RequestBody Users user) {
-        try {
-            Users createdUser = userService.createUser(user);
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        }
+  }
+
+  @DeleteMapping("/{id}")
+  public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
+    boolean deleted = userService.deleteUser(id);
+    if (deleted) {
+      return ResponseEntity.noContent().build();
     }
-    
-    @PutMapping("/{id}")
-    public ResponseEntity<Users> updateUser(@PathVariable UUID id, @RequestBody Users user) {
-        try {
-            Users updatedUser = userService.updateUser(id, user);
-            return ResponseEntity.ok(updatedUser);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
-    
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
-        boolean deleted = userService.deleteUser(id);
-        if (deleted) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.notFound().build();
-    }
+    return ResponseEntity.notFound().build();
+  }
 }
