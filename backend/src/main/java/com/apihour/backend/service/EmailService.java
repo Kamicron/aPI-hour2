@@ -55,6 +55,39 @@ public class EmailService {
     }
   }
 
+  public void sendVerificationEmail(String toEmail, String userName, String verificationToken) {
+    try {
+      SimpleMailMessage message = new SimpleMailMessage();
+      message.setFrom(fromEmail);
+      message.setTo(toEmail);
+      message.setSubject("Vérifiez votre adresse email - aPI-Hour");
+
+      String verificationLink = frontendUrl + "/verify-email?token=" + verificationToken;
+
+      String emailBody = String.format(
+          "Bonjour %s,\n\n" +
+              "Bienvenue sur aPI-Hour !\n\n" +
+              "Pour activer votre compte, veuillez vérifier votre adresse email en cliquant sur le lien ci-dessous :\n"
+              +
+              "%s\n\n" +
+              "Ce lien expirera dans 24 heures.\n\n" +
+              "Si vous n'avez pas créé de compte sur aPI-Hour, ignorez simplement cet email.\n\n" +
+              "Cordialement,\n" +
+              "L'équipe aPI-Hour",
+          userName,
+          verificationLink);
+
+      message.setText(emailBody);
+
+      mailSender.send(message);
+      logger.info("Verification email sent successfully to: {}", toEmail);
+
+    } catch (MailException e) {
+      logger.error("Failed to send verification email to: {}", toEmail, e);
+      throw new RuntimeException("Failed to send verification email", e);
+    }
+  }
+
   public void sendWelcomeEmail(String toEmail, String userName) {
     try {
       SimpleMailMessage message = new SimpleMailMessage();
