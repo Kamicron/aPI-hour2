@@ -1,0 +1,83 @@
+.overtime-widget {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg) var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  flex: 1;
+  min-height: 200px;
+}
+
+.overtime-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.overtime-icon {
+  color: #9333ea;
+  font-size: 24px;
+}
+
+.overtime-header h3 {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.overtime-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.overtime-value {
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  color: #9333ea;
+  line-height: 1;
+}
+
+.overtime-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.overtime-weekly {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  margin-top: var(--spacing-xs);
+}
+
+.overtime-weekly.positive {
+  color: var(--color-success);
+}
+
+.overtime-weekly.negative {
+  color: var(--color-danger);
+}
+
+.overtime-weekly.neutral {
+  color: var(--text-secondary);
+}
+
+.overtime-trend-icon {
+  font-size: 18px;
+}
+
+@media (max-width: 768px) {
+  .overtime-widget {
+    padding: var(--spacing-md) var(--spacing-lg);
+  }
+
+  .overtime-value {
+    font-size: var(--font-size-3xl);
+  }
+}
