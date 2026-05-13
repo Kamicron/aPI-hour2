@@ -5,6 +5,9 @@
   padding: var(--spacing-xl) var(--spacing-2xl);
   background-color: var(--bg-secondary);
   gap: var(--spacing-lg);
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 .header-left {
