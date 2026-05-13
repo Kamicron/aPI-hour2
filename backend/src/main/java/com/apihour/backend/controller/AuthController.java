@@ -237,4 +237,42 @@ public class AuthController {
     return ResponseEntity.ok(Map.of("message", "Verification email sent successfully"));
   }
 
+  @PostMapping("/change-password-request")
+  public ResponseEntity<?> changePasswordRequest(@RequestBody Map<String, String> request) {
+    String email = request.get("email");
+    String oldPassword = request.get("oldPassword");
+
+    if (email == null || email.isEmpty() || oldPassword == null || oldPassword.isEmpty()) {
+      return ResponseEntity.badRequest().body("Email and old password are required");
+    }
+
+    Users user = userRepository.findByEmail(email);
+
+    if (user == null) {
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
+    }
+
+    if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+      logger.warn("Invalid old password for user: {}", email);
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid old password");
+    }
+
+    String resetToken = UUID.randomUUID().toString();
+    Date expiry = new Date(System.currentTimeMillis() + 3600000);
+
+    user.setResetToken(resetToken);
+    user.setResetTokenExpiry(expiry);
+    userRepository.save(user);
+
+    try {
+      emailService.sendPasswordResetEmail(email, resetToken);
+      logger.info("Password change request sent to: {}", email);
+    } catch (Exception e) {
+      logger.error("Failed to send password reset email to: {}", email, e);
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to send reset email");
+    }
+
+    return ResponseEntity.ok(Map.of("message", "Password reset email sent successfully"));
+  }
+
 }
