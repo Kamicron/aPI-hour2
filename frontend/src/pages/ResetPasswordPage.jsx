@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import Input from './Input';
-import AuthBranding from './AuthBranding';
-import { useTheme } from '../../context/ThemeContext';
-import { authService } from '../../services/authService';
+import Input from '../components/auth/Input';
+import AuthBranding from '../components/auth/AuthBranding';
+import { useTheme } from '../context/ThemeContext';
+import { authService } from '../services/authService';
 import './AuthPage.css';
 
 export default function ResetPasswordPage() {

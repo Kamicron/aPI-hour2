@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import AuthBranding from './AuthBranding';
-import AuthTabs from './AuthTabs';
-import LoginForm from './LoginForm';
-import RegisterForm from './RegisterForm';
-import ForgotPasswordModal from './ForgotPasswordModal';
-import { useTheme } from '../../context/ThemeContext';
-import { useAuth } from '../../context/AuthContext';
-import { authService } from '../../services/authService';
+import AuthBranding from '../components/auth/AuthBranding';
+import AuthTabs from '../components/auth/AuthTabs';
+import LoginForm from '../components/auth/LoginForm';
+import RegisterForm from '../components/auth/RegisterForm';
+import ForgotPasswordModal from '../components/auth/ForgotPasswordModal';
+import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
+import { authService } from '../services/authService';
 import './AuthPage.css';
 
 export default function AuthPage() {
