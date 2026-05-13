@@ -17,16 +17,14 @@ export default function App() {
             <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/login" element={<AuthPage />} />
             <Route path="/register" element={<AuthPage />} />
-            <Route path="/reset-password" element={<ResetPasswordPage />} />
-            <Route path="/verify-email" element={<VerifyEmailPage />} />
+            <Route path="/reset-password" element={<Layout><ResetPasswordPage /></Layout>} />
+            <Route path="/verify-email" element={<Layout><VerifyEmailPage /></Layout>} />
             <Route
               path="/dashboard"
               element={
-                <Layout>
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                </Layout>
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
               }
             />
           </Routes>
