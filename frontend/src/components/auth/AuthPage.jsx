@@ -4,6 +4,7 @@ import AuthBranding from './AuthBranding';
 import AuthTabs from './AuthTabs';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
+import ForgotPasswordModal from './ForgotPasswordModal';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
 import { authService } from '../../services/authService';
@@ -16,6 +17,7 @@ export default function AuthPage() {
   );
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const { login } = useAuth();
@@ -46,6 +48,10 @@ export default function AuthPage() {
       setError(err.response?.data || 'Échec de la connexion. Vérifiez vos identifiants.');
       setLoading(false);
     }
+  };
+
+  const handleForgotPassword = async (email) => {
+    await authService.forgotPassword(email);
   };
 
   const handleRegister = async (data) => {
@@ -150,6 +156,13 @@ export default function AuthPage() {
           </footer>
         </div>
       </div>
+
+      {showForgotPassword && (
+        <ForgotPasswordModal
+          onClose={() => setShowForgotPassword(false)}
+          onSubmit={handleForgotPassword}
+        />
+      )}
     </div>
   );
 }
