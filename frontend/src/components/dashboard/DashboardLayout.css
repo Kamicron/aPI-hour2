@@ -22,7 +22,6 @@
   padding: var(--spacing-2xl);
   padding-bottom: var(--spacing-2xl);
   background-color: var(--bg-secondary);
-  min-height: 100%;
   overflow: auto;
 }
 
