@@ -1,11 +1,13 @@
 import { useLocation } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
+import { useAuth } from '../../context/AuthContext';
 
 import './Sidebar.css';
 
 export default function Sidebar() {
   const location = useLocation();
   const { theme } = useTheme();
+  const { logout } = useAuth();
 
   const menuItems = [
     {
@@ -71,9 +73,9 @@ export default function Sidebar() {
       </nav>
 
       <div className="sidebar-footer">
-        <div className="sidebar-help">
-          <span className="material-icons help-icon">help_outline</span>
-          <span className="help-text">Besoin d'aide ?</span>
+        <div className="sidebar-help" onClick={logout}>
+          <span className="material-icons help-icon">logout</span>
+          <span className="help-text">Déconnexion</span>
         </div>
       </div>
     </aside>
