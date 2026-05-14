@@ -1,5 +1,6 @@
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import HeaderLayout from '../layout/HeaderLayout';
 import './DashboardHeader.css';
 
 export default function DashboardHeader() {
@@ -35,32 +36,26 @@ export default function DashboardHeader() {
   };
 
   return (
-    <header className="dashboard-header">
-      <div className="header-left">
-        <h1 className="header-greeting">
-          {getGreeting()}, {getUserName()}
-        </h1>
-        <p className="header-subtitle">
-          Voici un aperçu de vos heures travaillées.
-        </p>
-      </div>
-
-      <div className="header-right">
-        <div className="header-date">
-          <span className="material-icons date-icon">calendar_today</span>
-          <span className="date-text">{getFormattedDate()}</span>
+    <HeaderLayout
+      left={
+        <div className="header-left">
+          <h1 className="header-greeting">
+            {getGreeting()}, {getUserName()}
+          </h1>
+          <p className="header-subtitle">
+            Voici un aperçu de vos heures travaillées.
+          </p>
         </div>
-
-        <button
-          className="theme-toggle-btn"
-          onClick={toggleTheme}
-          aria-label="Toggle theme"
-        >
-          <span className="material-icons">
-            {theme === 'light' ? 'dark_mode' : 'light_mode'}
-          </span>
-        </button>
-      </div>
-    </header>
+      }
+      right={
+        <div className="header-right">
+          <div className="header-date">
+            <span className="material-icons date-icon">calendar_today</span>
+            <span className="date-text">{getFormattedDate()}</span>
+          </div>
+        </div>
+      }
+    />
   );
+
 }
