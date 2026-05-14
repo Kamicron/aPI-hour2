@@ -1,13 +1,13 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
-import Layout from './components/Layout';
 import AuthPage from './pages/AuthPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import Dashboard from './pages/Dashboard';
 import Settings from './pages/Settings';
-import ProtectedRoute from './components/ProtectedRoute';
+import ProtectedRoute from './components/layout/ProtectedRoute';
+import LegalMention from './pages/LegalMention';
 
 export default function App() {
   return (
@@ -18,8 +18,10 @@ export default function App() {
             <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/login" element={<AuthPage />} />
             <Route path="/register" element={<AuthPage />} />
-            <Route path="/reset-password" element={<Layout><ResetPasswordPage /></Layout>} />
-            <Route path="/verify-email" element={<Layout><VerifyEmailPage /></Layout>} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/verify-email" element={<VerifyEmailPage />} />
+            <Route path="/legal-mention" element={<LegalMention />} />
+
             <Route
               path="/dashboard"
               element={

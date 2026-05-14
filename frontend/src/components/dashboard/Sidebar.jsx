@@ -77,6 +77,11 @@ export default function Sidebar() {
           <span className="material-icons help-icon">logout</span>
           <span className="help-text">Déconnexion</span>
         </div>
+
+        <div className="sidebar-help" onClick={() => window.location.href = '/legal-mention'}>
+          <span className="material-icons help-icon">description</span>
+          <span className="help-text">Mentions légales</span>
+        </div>
       </div>
     </aside>
   );
