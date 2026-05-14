@@ -36,7 +36,6 @@ export default function AuthPage() {
     try {
       const response = await authService.login(data.email, data.password);
 
-      // Gérer "Se souvenir de moi"
       if (data.rememberMe) {
         localStorage.setItem('rememberMe', 'true');
         localStorage.setItem('rememberedEmail', data.email);
@@ -45,7 +44,6 @@ export default function AuthPage() {
         localStorage.removeItem('rememberedEmail');
       }
 
-      // Récupérer les données utilisateur complètes depuis le backend
       try {
         const userResponse = await fetch('http://localhost:8080/api/users', {
           headers: {
@@ -55,23 +53,19 @@ export default function AuthPage() {
 
         if (userResponse.ok) {
           const users = await userResponse.json();
-          // Trouver l'utilisateur correspondant à l'email
           const currentUser = users.find(u => u.email.toLowerCase() === data.email.toLowerCase());
 
           if (currentUser) {
             console.log('User data loaded:', currentUser);
             login(response.token, currentUser);
           } else {
-            // Fallback si l'utilisateur n'est pas trouvé
             login(response.token, { email: data.email });
           }
         } else {
-          // Fallback en cas d'erreur
           login(response.token, { email: data.email });
         }
       } catch (userError) {
         console.error('Error fetching user data:', userError);
-        // Fallback en cas d'erreur
         login(response.token, { email: data.email });
       }
 
