@@ -302,6 +302,180 @@ public class StatsController {
     }
   }
 
+  @GetMapping("/calendar/{year}/{month}")
+  public ResponseEntity<?> getCalendarData(@PathVariable int year, @PathVariable int month) {
+    try {
+      String userId = getUserIdFromAuth();
+      Users user = usersRepository.findById(UUID.fromString(userId)).orElse(null);
+
+      if (user == null) {
+        return ResponseEntity.notFound().build();
+      }
+
+      int weeklyGoal = user.getWeeklyHoursGoal() != null ? user.getWeeklyHoursGoal() : 40;
+      int dailyGoal = weeklyGoal / 5;
+
+      // Calculate period boundaries (Monday to Sunday)
+      LocalDate firstOfMonth = LocalDate.of(year, month, 1);
+      LocalDate lastOfMonth = firstOfMonth.withDayOfMonth(firstOfMonth.lengthOfMonth());
+
+      // If 1st is not Monday, go back to last Monday of previous month
+      LocalDate periodStart = firstOfMonth;
+      if (firstOfMonth.getDayOfWeek() != DayOfWeek.MONDAY) {
+        periodStart = firstOfMonth.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+      }
+
+      // If last day is not Sunday, go back to previous Sunday
+      LocalDate periodEnd = lastOfMonth;
+      if (lastOfMonth.getDayOfWeek() != DayOfWeek.SUNDAY) {
+        periodEnd = lastOfMonth.with(TemporalAdjusters.previous(DayOfWeek.SUNDAY));
+      }
+
+      Date monthStart = Date.from(periodStart.atStartOfDay(ZoneId.systemDefault()).toInstant());
+      Date monthEnd = Date.from(periodEnd.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant());
+
+      // Get all entries for the period
+      List<TimeEntry> allEntries = timeEntryRepository.findByUserIdAndStartTimeBetween(userId, monthStart, monthEnd);
+
+      // Group entries by day
+      Map<String, List<TimeEntry>> entriesByDay = new HashMap<>();
+      for (TimeEntry entry : allEntries) {
+        LocalDate entryDate = entry.getStartTime().toInstant()
+            .atZone(ZoneId.systemDefault()).toLocalDate();
+        String dateStr = entryDate.toString();
+        entriesByDay.computeIfAbsent(dateStr, k -> new ArrayList<>()).add(entry);
+      }
+
+      // Build days data for entire period
+      List<Map<String, Object>> daysData = new ArrayList<>();
+      long totalMonthWorkMillis = 0;
+      long totalMonthPauseMillis = 0;
+
+      // Iterate through all days in the period
+      LocalDate currentDate = periodStart;
+      while (!currentDate.isAfter(periodEnd)) {
+        String dateStr = currentDate.toString();
+        List<TimeEntry> dayEntries = entriesByDay.getOrDefault(dateStr, new ArrayList<>());
+
+        if (!dayEntries.isEmpty()) {
+          Map<String, Object> dayData = new HashMap<>();
+          dayData.put("date", dateStr);
+
+          List<Map<String, Object>> sessions = new ArrayList<>();
+          long dayWorkMillis = 0;
+          long dayPauseMillis = 0;
+
+          for (TimeEntry entry : dayEntries) {
+            Map<String, Object> session = new HashMap<>();
+
+            LocalTime startTime = entry.getStartTime().toInstant()
+                .atZone(ZoneId.systemDefault()).toLocalTime();
+            session.put("startTime", String.format("%02d:%02d", startTime.getHour(), startTime.getMinute()));
+
+            long workMillis;
+            if (entry.getEndTime() != null) {
+              LocalTime endTime = entry.getEndTime().toInstant()
+                  .atZone(ZoneId.systemDefault()).toLocalTime();
+              session.put("endTime", String.format("%02d:%02d", endTime.getHour(), endTime.getMinute()));
+              workMillis = entry.getEndTime().getTime() - entry.getStartTime().getTime();
+              session.put("status", "completed");
+            } else {
+              session.put("endTime", null);
+              workMillis = System.currentTimeMillis() - entry.getStartTime().getTime();
+              session.put("status", "ongoing");
+            }
+
+            // Calculate pause time
+            List<Pause> pauses = pauseRepository.findByTimeEntryId(entry.getId());
+            long pauseMillis = 0;
+            for (Pause pause : pauses) {
+              if (pause.getPauseEnd() != null) {
+                pauseMillis += pause.getPauseEnd().getTime() - pause.getPauseStart().getTime();
+              } else {
+                pauseMillis += System.currentTimeMillis() - pause.getPauseStart().getTime();
+              }
+            }
+
+            int pauseMinutes = (int) (pauseMillis / (1000 * 60));
+            session.put("pauseDuration", String.format("%02d:%02d", pauseMinutes / 60, pauseMinutes % 60));
+
+            long netWorkMillis = workMillis - pauseMillis;
+            int totalMinutes = (int) (netWorkMillis / (1000 * 60));
+            session.put("duration", String.format("%02d:%02d", totalMinutes / 60, totalMinutes % 60));
+
+            dayWorkMillis += workMillis;
+            dayPauseMillis += pauseMillis;
+
+            sessions.add(session);
+          }
+
+          dayData.put("sessions", sessions);
+
+          long netDayWorkMillis = dayWorkMillis - dayPauseMillis;
+          int dayTotalMinutes = (int) (netDayWorkMillis / (1000 * 60));
+          dayData.put("totalDuration", String.format("%02d:%02d", dayTotalMinutes / 60, dayTotalMinutes % 60));
+
+          totalMonthWorkMillis += dayWorkMillis;
+          totalMonthPauseMillis += dayPauseMillis;
+
+          daysData.add(dayData);
+        }
+
+        currentDate = currentDate.plusDays(1);
+      }
+
+      // Calculate month stats
+      Map<String, Object> monthStats = new HashMap<>();
+      long netMonthWorkMillis = totalMonthWorkMillis - totalMonthPauseMillis;
+      double totalHours = netMonthWorkMillis / (1000.0 * 60 * 60);
+
+      int totalHoursInt = (int) totalHours;
+      int totalMinutes = (int) ((totalHours - totalHoursInt) * 60);
+      monthStats.put("totalHours", String.format("%dh %02dm", totalHoursInt, totalMinutes));
+
+      // Calculate goal based on working days in the period
+      int workingDays = 0;
+      LocalDate date = periodStart;
+      while (!date.isAfter(periodEnd)) {
+        DayOfWeek dayOfWeek = date.getDayOfWeek();
+        if (dayOfWeek != DayOfWeek.SATURDAY && dayOfWeek != DayOfWeek.SUNDAY) {
+          workingDays++;
+        }
+        date = date.plusDays(1);
+      }
+      int monthGoal = workingDays * dailyGoal;
+      monthStats.put("goalHours", monthGoal + "h 00m");
+
+      double overtime = totalHours - monthGoal;
+      if (overtime > 0) {
+        int overtimeHoursInt = (int) overtime;
+        int overtimeMinutes = (int) ((overtime - overtimeHoursInt) * 60);
+        monthStats.put("overtimeHours", String.format("%dh %02dm", overtimeHoursInt, overtimeMinutes));
+      } else {
+        monthStats.put("overtimeHours", "0h 00m");
+      }
+
+      double progress = monthGoal > 0 ? (totalHours / monthGoal) * 100 : 0;
+      monthStats.put("progress", Math.round(progress));
+
+      // Format period dates
+      String[] monthNames = { "jan", "fév", "mar", "avr", "mai", "jun", "jul", "aoû", "sep", "oct", "nov", "déc" };
+      monthStats.put("periodStart", periodStart.getDayOfMonth() + " " + monthNames[periodStart.getMonthValue() - 1]
+          + " " + periodStart.getYear());
+      monthStats.put("periodEnd",
+          periodEnd.getDayOfMonth() + " " + monthNames[periodEnd.getMonthValue() - 1] + " " + periodEnd.getYear());
+
+      Map<String, Object> response = new HashMap<>();
+      response.put("days", daysData);
+      response.put("monthStats", monthStats);
+
+      return ResponseEntity.ok(response);
+    } catch (Exception e) {
+      e.printStackTrace();
+      return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+    }
+  }
+
   @GetMapping("/week-history")
   public ResponseEntity<?> getWeekHistory() {
     try {
