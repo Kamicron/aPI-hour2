@@ -71,6 +71,10 @@ export default function WeekHistory() {
     return '●';
   };
 
+  const handleViewCalendar = () => {
+    navigate('/calendar');
+  };
+
   return (
     <div className="week-history-widget">
       <div className="week-history-header">
@@ -128,7 +132,7 @@ export default function WeekHistory() {
         </table>
 
         <div className="week-history-footer">
-          <button className="view-calendar-button">
+          <button className="view-calendar-button" onClick={handleViewCalendar}>
             <span className="material-icons">calendar_month</span>
             Afficher le calendrier complet
           </button>

@@ -18,22 +18,10 @@ export default function Sidebar() {
       active: true
     },
     {
-      id: 'sessions',
-      label: 'Mes sessions',
-      icon: 'schedule',
-      path: '/sessions'
-    },
-    {
       id: 'calendar',
       label: 'Calendrier',
       icon: 'calendar_month',
       path: '/calendar'
-    },
-    {
-      id: 'reports',
-      label: 'Rapports',
-      icon: 'assessment',
-      path: '/reports'
     },
     {
       id: 'settings',
