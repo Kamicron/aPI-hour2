@@ -3,9 +3,8 @@
   background: var(--bg-primary);
   border-radius: 12px;
   padding: 0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border-color);
   overflow: hidden;
-  border: 2px solid transparent;
   transition: all 0.3s ease;
 }
 
@@ -131,7 +130,9 @@
 .info-content {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 4px;
+  width: 100%;
 }
 
 .info-label {
