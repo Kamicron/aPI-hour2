@@ -87,6 +87,10 @@
   transition: background-color 0.2s ease;
 }
 
+.week-history-table tbody tr.clickable-row {
+  cursor: pointer;
+}
+
 .week-history-table tbody tr:hover {
   background-color: var(--bg-secondary);
 }

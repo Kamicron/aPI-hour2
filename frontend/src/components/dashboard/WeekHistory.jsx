@@ -1,13 +1,21 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './WeekHistory.css';
 
 export default function WeekHistory() {
   const [weekData, setWeekData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchWeekHistory();
   }, []);
+
+  const handleRowClick = (day) => {
+    if (day.fullDate) {
+      navigate(`/day/${day.fullDate}`);
+    }
+  };
 
   const fetchWeekHistory = async () => {
     try {
@@ -95,7 +103,7 @@ export default function WeekHistory() {
               </tr>
             ) : (
               weekData.map((day, index) => (
-                <tr key={index}>
+                <tr key={index} onClick={() => handleRowClick(day)} className="clickable-row">
                   <td>
                     <div className="date-cell">
                       <span className="day-name">{day.dayName}</span>
