@@ -7,6 +7,7 @@ import VerifyEmailPage from './pages/VerifyEmailPage';
 import Dashboard from './pages/Dashboard';
 import Settings from './pages/Settings';
 import DayDetail from './pages/DayDetail';
+import Calendar from './pages/Calendar';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import LegalMention from './pages/LegalMention';
 
@@ -44,6 +45,14 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <DayDetail />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/calendar"
+              element={
+                <ProtectedRoute>
+                  <Calendar />
                 </ProtectedRoute>
               }
             />
