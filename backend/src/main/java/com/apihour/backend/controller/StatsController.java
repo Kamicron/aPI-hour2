@@ -176,4 +176,149 @@ public class StatsController {
       return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
     }
   }
+
+  @GetMapping("/week-history")
+  public ResponseEntity<?> getWeekHistory() {
+    try {
+      String userId = getUserIdFromAuth();
+      Users user = usersRepository.findById(UUID.fromString(userId)).orElse(null);
+
+      if (user == null) {
+        return ResponseEntity.notFound().build();
+      }
+
+      int dailyGoal = user.getWeeklyHoursGoal() != null ? user.getWeeklyHoursGoal() / 5 : 8;
+
+      LocalDate today = LocalDate.now();
+      LocalDate monday = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+
+      System.out.println("=== Week History Debug ===");
+      System.out.println("Today: " + today);
+      System.out.println("Monday of week: " + monday);
+      System.out.println("User ID: " + userId);
+
+      List<Map<String, Object>> weekData = new ArrayList<>();
+      String[] dayNames = { "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi" };
+      String[] monthNames = { "jan", "fév", "mar", "avr", "mai", "jun", "jul", "aoû", "sep", "oct", "nov", "déc" };
+
+      for (int i = 0; i < 5; i++) {
+        LocalDate currentDay = monday.plusDays(i);
+        Date dayStart = Date.from(currentDay.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        Date dayEnd = Date.from(currentDay.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant());
+
+        System.out.println("\nDay " + i + " (" + dayNames[i] + " " + currentDay + "):");
+        System.out.println("  Range: " + dayStart + " to " + dayEnd);
+
+        List<TimeEntry> entries = timeEntryRepository.findByUserIdAndStartTimeBetween(userId, dayStart, dayEnd);
+        System.out.println("  Found " + entries.size() + " entries");
+
+        Map<String, Object> dayData = new HashMap<>();
+        dayData.put("dayName", dayNames[i]);
+        dayData.put("date", currentDay.getDayOfMonth() + " " + monthNames[currentDay.getMonthValue() - 1]);
+
+        if (!entries.isEmpty()) {
+          // Get first entry for initial start time
+          TimeEntry firstEntry = entries.get(0);
+
+          // Find earliest start time
+          LocalTime startTime = firstEntry.getStartTime().toInstant()
+              .atZone(ZoneId.systemDefault()).toLocalTime();
+          for (TimeEntry e : entries) {
+            LocalTime entryStart = e.getStartTime().toInstant()
+                .atZone(ZoneId.systemDefault()).toLocalTime();
+            if (entryStart.isBefore(startTime)) {
+              startTime = entryStart;
+            }
+          }
+          dayData.put("startTime", String.format("%02d:%02d", startTime.getHour(), startTime.getMinute()));
+
+          // Calculate totals across all entries
+          long totalWorkMillis = 0;
+          long totalPauseMillis = 0;
+          boolean hasOngoingSession = false;
+          LocalTime latestEndTime = null;
+
+          for (TimeEntry entry : entries) {
+            // Calculate work time for this entry
+            long workMillis;
+            if (entry.getEndTime() != null) {
+              workMillis = entry.getEndTime().getTime() - entry.getStartTime().getTime();
+              LocalTime endTime = entry.getEndTime().toInstant()
+                  .atZone(ZoneId.systemDefault()).toLocalTime();
+              if (latestEndTime == null || endTime.isAfter(latestEndTime)) {
+                latestEndTime = endTime;
+              }
+            } else {
+              // Ongoing session
+              workMillis = System.currentTimeMillis() - entry.getStartTime().getTime();
+              hasOngoingSession = true;
+            }
+
+            // Calculate pause time for this entry
+            List<Pause> pauses = pauseRepository.findByTimeEntryId(entry.getId());
+            long entryPauseMillis = 0;
+            for (Pause pause : pauses) {
+              if (pause.getPauseEnd() != null) {
+                entryPauseMillis += pause.getPauseEnd().getTime() - pause.getPauseStart().getTime();
+              } else {
+                // Ongoing pause
+                entryPauseMillis += System.currentTimeMillis() - pause.getPauseStart().getTime();
+              }
+            }
+
+            totalWorkMillis += workMillis;
+            totalPauseMillis += entryPauseMillis;
+          }
+
+          // Set end time
+          if (latestEndTime != null) {
+            dayData.put("endTime", String.format("%02d:%02d", latestEndTime.getHour(), latestEndTime.getMinute()));
+          } else {
+            dayData.put("endTime", null);
+          }
+
+          // Format pause duration
+          int pauseMinutes = (int) (totalPauseMillis / (1000 * 60));
+          dayData.put("pauseDuration", String.format("%02d:%02d", pauseMinutes / 60, pauseMinutes % 60));
+
+          // Calculate net work time
+          long netWorkMillis = totalWorkMillis - totalPauseMillis;
+          int totalMinutes = (int) (netWorkMillis / (1000 * 60));
+          int hours = totalMinutes / 60;
+          int minutes = totalMinutes % 60;
+          dayData.put("totalDuration", String.format("%02d:%02d", hours, minutes));
+
+          // Calculate overtime
+          double totalHours = netWorkMillis / (1000.0 * 60 * 60);
+          double overtime = totalHours - dailyGoal;
+          if (overtime > 0) {
+            int overtimeMinutes = (int) (overtime * 60);
+            dayData.put("overtime", String.format("%02d:%02d", overtimeMinutes / 60, overtimeMinutes % 60));
+          } else {
+            dayData.put("overtime", "00:00");
+          }
+
+          // Set status
+          if (hasOngoingSession) {
+            dayData.put("status", "En cours");
+          } else {
+            dayData.put("status", "Validée");
+          }
+        } else {
+          dayData.put("startTime", null);
+          dayData.put("endTime", null);
+          dayData.put("pauseDuration", null);
+          dayData.put("totalDuration", null);
+          dayData.put("overtime", null);
+          dayData.put("status", "—");
+        }
+
+        weekData.add(dayData);
+      }
+
+      return ResponseEntity.ok(weekData);
+    } catch (Exception e) {
+      return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+    }
+  }
 }
