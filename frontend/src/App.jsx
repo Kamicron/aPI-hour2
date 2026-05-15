@@ -6,6 +6,7 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import Dashboard from './pages/Dashboard';
 import Settings from './pages/Settings';
+import DayDetail from './pages/DayDetail';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import LegalMention from './pages/LegalMention';
 
@@ -35,6 +36,14 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <Settings />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/day/:date"
+              element={
+                <ProtectedRoute>
+                  <DayDetail />
                 </ProtectedRoute>
               }
             />
