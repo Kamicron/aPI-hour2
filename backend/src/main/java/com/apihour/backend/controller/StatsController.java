@@ -177,6 +177,131 @@ public class StatsController {
     }
   }
 
+  @GetMapping("/day-detail/{date}")
+  public ResponseEntity<?> getDayDetail(@PathVariable String date) {
+    try {
+      String userId = getUserIdFromAuth();
+      Users user = usersRepository.findById(UUID.fromString(userId)).orElse(null);
+
+      if (user == null) {
+        return ResponseEntity.notFound().build();
+      }
+
+      int dailyGoal = user.getWeeklyHoursGoal() != null ? user.getWeeklyHoursGoal() / 5 : 8;
+
+      // Parse date (format: yyyy-MM-dd)
+      String[] dateParts = date.split("-");
+      LocalDate targetDate = LocalDate.of(
+          Integer.parseInt(dateParts[0]),
+          Integer.parseInt(dateParts[1]),
+          Integer.parseInt(dateParts[2]));
+
+      Date dayStart = Date.from(targetDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+      Date dayEnd = Date.from(targetDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant());
+
+      List<TimeEntry> entries = timeEntryRepository.findByUserIdAndStartTimeBetween(userId, dayStart, dayEnd);
+
+      // Build sessions list
+      List<Map<String, Object>> sessions = new ArrayList<>();
+      long totalWorkMillis = 0;
+      long totalPauseMillis = 0;
+      boolean hasOngoingSession = false;
+      LocalTime earliestStart = null;
+      LocalTime latestEnd = null;
+
+      for (TimeEntry entry : entries) {
+        Map<String, Object> session = new HashMap<>();
+        session.put("id", entry.getId());
+        session.put("startTime", entry.getStartTime());
+
+        // Calculate work time for this entry
+        long workMillis;
+        if (entry.getEndTime() != null) {
+          workMillis = entry.getEndTime().getTime() - entry.getStartTime().getTime();
+          session.put("endTime", entry.getEndTime());
+
+          LocalTime endTime = entry.getEndTime().toInstant()
+              .atZone(ZoneId.systemDefault()).toLocalTime();
+          if (latestEnd == null || endTime.isAfter(latestEnd)) {
+            latestEnd = endTime;
+          }
+        } else {
+          workMillis = System.currentTimeMillis() - entry.getStartTime().getTime();
+          session.put("endTime", null);
+          hasOngoingSession = true;
+        }
+
+        LocalTime startTime = entry.getStartTime().toInstant()
+            .atZone(ZoneId.systemDefault()).toLocalTime();
+        if (earliestStart == null || startTime.isBefore(earliestStart)) {
+          earliestStart = startTime;
+        }
+
+        // Calculate pause time for this entry
+        List<Pause> pauses = pauseRepository.findByTimeEntryId(entry.getId());
+        long entryPauseMillis = 0;
+        for (Pause pause : pauses) {
+          if (pause.getPauseEnd() != null) {
+            entryPauseMillis += pause.getPauseEnd().getTime() - pause.getPauseStart().getTime();
+          } else {
+            entryPauseMillis += System.currentTimeMillis() - pause.getPauseStart().getTime();
+          }
+        }
+
+        int pauseMinutes = (int) (entryPauseMillis / (1000 * 60));
+        session.put("pauseDuration", String.format("%02d:%02d", pauseMinutes / 60, pauseMinutes % 60));
+
+        long netWorkMillis = workMillis - entryPauseMillis;
+        int totalMinutes = (int) (netWorkMillis / (1000 * 60));
+        session.put("duration", String.format("%02d:%02d", totalMinutes / 60, totalMinutes % 60));
+
+        totalWorkMillis += workMillis;
+        totalPauseMillis += entryPauseMillis;
+
+        sessions.add(session);
+      }
+
+      // Build day stats
+      Map<String, Object> stats = new HashMap<>();
+      if (!entries.isEmpty()) {
+        if (earliestStart != null) {
+          stats.put("startTime",
+              Date.from(targetDate.atTime(earliestStart).atZone(ZoneId.systemDefault()).toInstant()));
+        }
+        if (latestEnd != null) {
+          stats.put("endTime", Date.from(targetDate.atTime(latestEnd).atZone(ZoneId.systemDefault()).toInstant()));
+        }
+
+        int pauseMinutes = (int) (totalPauseMillis / (1000 * 60));
+        stats.put("totalPause", String.format("%02d:%02d", pauseMinutes / 60, pauseMinutes % 60));
+
+        long netWorkMillis = totalWorkMillis - totalPauseMillis;
+        int totalMinutes = (int) (netWorkMillis / (1000 * 60));
+        stats.put("totalDuration", String.format("%02d:%02d", totalMinutes / 60, totalMinutes % 60));
+
+        double totalHours = netWorkMillis / (1000.0 * 60 * 60);
+        double overtime = totalHours - dailyGoal;
+        if (overtime > 0) {
+          int overtimeMinutes = (int) (overtime * 60);
+          stats.put("overtime", String.format("%02d:%02d", overtimeMinutes / 60, overtimeMinutes % 60));
+        } else {
+          stats.put("overtime", "00:00");
+        }
+
+        stats.put("status", hasOngoingSession ? "En cours" : "Validée");
+      }
+
+      Map<String, Object> response = new HashMap<>();
+      response.put("sessions", sessions);
+      response.put("stats", stats);
+
+      return ResponseEntity.ok(response);
+    } catch (Exception e) {
+      e.printStackTrace();
+      return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+    }
+  }
+
   @GetMapping("/week-history")
   public ResponseEntity<?> getWeekHistory() {
     try {
