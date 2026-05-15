@@ -215,6 +215,7 @@ public class StatsController {
         Map<String, Object> dayData = new HashMap<>();
         dayData.put("dayName", dayNames[i]);
         dayData.put("date", currentDay.getDayOfMonth() + " " + monthNames[currentDay.getMonthValue() - 1]);
+        dayData.put("fullDate", currentDay.toString());
 
         if (!entries.isEmpty()) {
           // Get first entry for initial start time
