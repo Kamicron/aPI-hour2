@@ -1,4 +1,4 @@
-.dashboard-widgets {
+/* .dashboard-widgets {
   display: grid;
   grid-template-columns: minmax(450px, 1fr) minmax(350px, 420px);
   gap: var(--spacing-xl);
@@ -15,16 +15,48 @@
   flex-direction: column;
   gap: var(--spacing-lg);
   min-height: 100%;
+} */
+
+
+.dashboard-widgets {
+  display: grid;
+  grid-template-columns: 1.5fr 0.5fr;
+  grid-template-rows: auto auto;
+  gap: var(--spacing-lg);
+  grid-auto-flow: row;
+  grid-template-areas:
+    "TimeTracking WeeklyGoal"
+    "TimeTracking OvertimeHours"
+    "WeekHistory WeekHistory";
 }
 
-@media (max-width: 1400px) {
+.TimeTracking {
+  grid-area: TimeTracking;
+}
+
+.WeeklyGoal {
+  grid-area: WeeklyGoal;
+}
+
+.OvertimeHours {
+  grid-area: OvertimeHours;
+}
+
+.WeekHistory {
+  grid-area: WeekHistory;
+}
+
+
+
+@media (max-width: 1200px) {
   .dashboard-widgets {
     grid-template-columns: 1fr;
-    gap: var(--spacing-lg);
-  }
-
-  .dashboard-sidebar-widgets {
-    gap: var(--spacing-lg);
+    grid-template-rows: auto;
+    grid-template-areas:
+      "TimeTracking"
+      "WeeklyGoal"
+      "OvertimeHours"
+      "WeekHistory";
   }
 }
 
