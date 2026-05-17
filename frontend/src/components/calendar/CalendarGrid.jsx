@@ -1,9 +1,9 @@
 import './CalendarGrid.css';
 
-export default function CalendarGrid({ 
-  currentDate, 
-  calendarData, 
-  selectedDay, 
+export default function CalendarGrid({
+  currentDate,
+  calendarData,
+  selectedDay,
   onDayClick,
   onMonthChange,
   onTodayClick,
@@ -60,14 +60,14 @@ export default function CalendarGrid({
 
   const isToday = (year, month, day) => {
     const today = new Date();
-    return today.getFullYear() === year && 
-           today.getMonth() === month && 
-           today.getDate() === day;
+    return today.getFullYear() === year &&
+      today.getMonth() === month &&
+      today.getDate() === day;
   };
 
   const formatMonthYear = () => {
-    const months = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 
-                    'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+    const months = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+      'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
     return `${months[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
   };
 
@@ -77,8 +77,12 @@ export default function CalendarGrid({
   };
 
   const handleDayClick = (day) => {
-    if (day.isCurrentMonth && day.sessions.length > 0) {
-      onDayClick(day);
+    if (day.isCurrentMonth) {
+      if (day.sessions && day.sessions.length > 0) {
+        onDayClick(day);
+      } else {
+        onDayClick(null);
+      }
     }
   };
 
@@ -97,26 +101,26 @@ export default function CalendarGrid({
             <span className="material-icons">chevron_right</span>
           </button>
         </div>
-        
+
         <div className="calendar-actions">
           <button className="today-btn" onClick={onTodayClick}>
             <span className="material-icons">today</span>
             Aujourd'hui
           </button>
           <div className="view-mode-tabs">
-            <button 
+            <button
               className={`view-tab ${viewMode === 'month' ? 'active' : ''}`}
               onClick={() => onViewModeChange('month')}
             >
               Mois
             </button>
-            <button 
+            <button
               className={`view-tab ${viewMode === 'week' ? 'active' : ''}`}
               onClick={() => onViewModeChange('week')}
             >
               Semaine
             </button>
-            <button 
+            <button
               className={`view-tab ${viewMode === 'day' ? 'active' : ''}`}
               onClick={() => onViewModeChange('day')}
             >
@@ -132,7 +136,7 @@ export default function CalendarGrid({
             <div key={day} className="weekday-header">{day}</div>
           ))}
         </div>
-        
+
         <div className="calendar-days">
           {days.map((day, index) => (
             <div
@@ -153,8 +157,8 @@ export default function CalendarGrid({
                 <div className="day-content">
                   <div className="session-dots">
                     {day.sessions.slice(0, 4).map((session, idx) => (
-                      <span 
-                        key={idx} 
+                      <span
+                        key={idx}
                         className={`session-dot ${session.status === 'ongoing' ? 'ongoing' : 'completed'}`}
                         title={`${formatTime(session.startTime)} - ${formatTime(session.endTime)}`}
                       ></span>
