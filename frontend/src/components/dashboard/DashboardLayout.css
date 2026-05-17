@@ -19,8 +19,7 @@
 
 .dashboard-content {
   flex: 1;
-  padding: var(--spacing-2xl);
-  padding-bottom: var(--spacing-2xl);
+  padding: 0 var(--spacing-2xl);
   background-color: var(--bg-secondary);
   overflow: auto;
 }

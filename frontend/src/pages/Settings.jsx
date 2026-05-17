@@ -276,11 +276,6 @@ export default function Settings() {
   return (
     <DashboardLayout>
       <div className="settings-page">
-        <div className="settings-header">
-          <h1>Paramètres</h1>
-          <p className="settings-subtitle">Gérez vos informations et préférences</p>
-        </div>
-
         <div className="settings-grid">
           {/* Profile Section */}
           <div className="settings-card">

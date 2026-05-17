@@ -1,8 +1,4 @@
-.calendar-page {
-  padding: var(--spacing-lg);
-  max-width: 1600px;
-  margin: 0 auto;
-}
+.calendar-page {}
 
 .calendar-header {
   margin-bottom: var(--spacing-xl);
@@ -18,12 +14,6 @@
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
   color: var(--text-primary);
-  margin: 0;
-}
-
-.calendar-subtitle {
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
   margin: 0;
 }
 

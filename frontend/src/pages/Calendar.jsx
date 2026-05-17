@@ -87,13 +87,6 @@ export default function Calendar() {
   return (
     <DashboardLayout>
       <div className="calendar-page">
-        <div className="calendar-header">
-          <div className="calendar-title-section">
-            <h1 className="calendar-title">Calendrier</h1>
-            <p className="calendar-subtitle">Planifiez et consultez vos heures</p>
-          </div>
-        </div>
-
         <div className="calendar-container">
           <CalendarGrid
             currentDate={currentDate}
