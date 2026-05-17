@@ -98,7 +98,6 @@ export default function Calendar() {
 
           <div className="calendar-sidebar">
             <MonthSummary monthStats={monthStats} />
-            <DayDetails selectedDay={selectedDay} onAddSession={handleAddSession} />
 
             <div className="export-section">
               <div className="export-header">
@@ -115,6 +114,8 @@ export default function Calendar() {
                 Exporter
               </button>
             </div>
+
+            <DayDetails selectedDay={selectedDay} onAddSession={handleAddSession} />
           </div>
         </div>
       </div>
