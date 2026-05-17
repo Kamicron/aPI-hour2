@@ -3,6 +3,7 @@ import DashboardLayout from '../components/dashboard/DashboardLayout';
 import CalendarGrid from '../components/calendar/CalendarGrid';
 import MonthSummary from '../components/calendar/MonthSummary';
 import DayDetails from '../components/calendar/DayDetails';
+import { exportToCSV, exportToPDF } from '../utils/exportUtils';
 import './Calendar.css';
 
 export default function Calendar() {
@@ -12,6 +13,7 @@ export default function Calendar() {
   const [monthStats, setMonthStats] = useState(null);
   const [viewMode, setViewMode] = useState('month');
   const [loading, setLoading] = useState(true);
+  const [exportFormat, setExportFormat] = useState('csv');
 
   useEffect(() => {
     fetchCalendarData();
@@ -68,7 +70,11 @@ export default function Calendar() {
   };
 
   const handleExport = () => {
-    alert('Fonctionnalité d\'export à venir');
+    if (exportFormat === 'csv') {
+      exportToCSV(calendarData, monthStats, currentDate);
+    } else if (exportFormat === 'pdf') {
+      exportToPDF(calendarData, monthStats, currentDate);
+    }
   };
 
   if (loading) {
@@ -104,10 +110,9 @@ export default function Calendar() {
                 <span className="material-icons">download</span>
                 <h3>Export</h3>
               </div>
-              <select className="export-format">
+              <select className="export-format" value={exportFormat} onChange={(e) => setExportFormat(e.target.value)}>
                 <option value="csv">CSV</option>
                 <option value="pdf">PDF</option>
-                <option value="excel">Excel</option>
               </select>
               <button className="export-btn" onClick={handleExport}>
                 <span className="material-icons">file_download</span>
