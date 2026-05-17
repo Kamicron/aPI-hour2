@@ -57,16 +57,16 @@ export default function AuthPage() {
 
           if (currentUser) {
             console.log('User data loaded:', currentUser);
-            login(response.token, currentUser);
+            login(response.token, currentUser, response.refreshToken);
           } else {
-            login(response.token, { email: data.email });
+            login(response.token, { email: data.email }, response.refreshToken);
           }
         } else {
-          login(response.token, { email: data.email });
+          login(response.token, { email: data.email }, response.refreshToken);
         }
       } catch (userError) {
         console.error('Error fetching user data:', userError);
-        login(response.token, { email: data.email });
+        login(response.token, { email: data.email }, response.refreshToken);
       }
 
       navigate('/dashboard');
