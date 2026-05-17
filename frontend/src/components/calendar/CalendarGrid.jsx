@@ -119,7 +119,7 @@ export default function CalendarGrid({
               key={index}
               className={`calendar-day ${!day.isCurrentMonth ? 'other-month' : ''} 
                          ${day.isToday ? 'today' : ''} 
-                         ${selectedDay?.fullDate === day.fullDate ? 'selected' : ''}
+                         ${selectedDay && day.isCurrentMonth && selectedDay.fullDate === day.fullDate ? 'selected' : ''}
                          ${day.sessions?.length > 0 ? 'has-sessions' : ''}`}
               onClick={() => handleDayClick(day)}
             >
