@@ -23,17 +23,25 @@ public class JwtUtils {
   @Value("${jwt.expiration}")
   private long expirationTime;
 
+  @Value("${jwt.refresh.expiration}")
+  private long refreshExpirationTime;
+
   public String generateToken(String username) {
     Map<String, Object> claims = new HashMap<>();
-    return createToken(claims, username);
+    return createToken(claims, username, expirationTime);
   }
 
-  private String createToken(Map<String, Object> claims, String username) {
+  public String generateRefreshToken(String username) {
+    Map<String, Object> claims = new HashMap<>();
+    return createToken(claims, username, refreshExpirationTime);
+  }
+
+  private String createToken(Map<String, Object> claims, String username, long expiration) {
     return Jwts.builder()
         .setClaims(claims)
         .setSubject(username)
         .setIssuedAt(new Date(System.currentTimeMillis()))
-        .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
+        .setExpiration(new Date(System.currentTimeMillis() + expiration))
         .signWith(getSignKey(), SignatureAlgorithm.HS512)
         .compact();
   }

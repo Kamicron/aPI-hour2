@@ -28,6 +28,8 @@ public class Users {
   private Boolean emailVerified;
   private String verificationToken;
   private Date verificationTokenExpiry;
+  private String refreshToken;
+  private Date refreshTokenExpiry;
 
   // Constructors
   public Users() {
@@ -157,5 +159,21 @@ public class Users {
 
   public void setVerificationTokenExpiry(Date verificationTokenExpiry) {
     this.verificationTokenExpiry = verificationTokenExpiry;
+  }
+
+  public String getRefreshToken() {
+    return refreshToken;
+  }
+
+  public void setRefreshToken(String refreshToken) {
+    this.refreshToken = refreshToken;
+  }
+
+  public Date getRefreshTokenExpiry() {
+    return refreshTokenExpiry;
+  }
+
+  public void setRefreshTokenExpiry(Date refreshTokenExpiry) {
+    this.refreshTokenExpiry = refreshTokenExpiry;
   }
 }
