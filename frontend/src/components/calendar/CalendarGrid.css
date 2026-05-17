@@ -181,7 +181,7 @@
 
 .calendar-day.today {
   background: var(--bg-primary);
-  border: 1px solid rgba(99, 102, 241, 0.3);
+  border: 1px solid var(--color-secondary);
   position: relative;
 }
 
