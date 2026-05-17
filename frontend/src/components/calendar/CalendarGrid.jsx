@@ -103,26 +103,6 @@ export default function CalendarGrid({
             <span className="material-icons">today</span>
             Aujourd'hui
           </button>
-          <div className="view-mode-tabs">
-            <button
-              className={`view-tab ${viewMode === 'month' ? 'active' : ''}`}
-              onClick={() => onViewModeChange('month')}
-            >
-              Mois
-            </button>
-            <button
-              className={`view-tab ${viewMode === 'week' ? 'active' : ''}`}
-              onClick={() => onViewModeChange('week')}
-            >
-              Semaine
-            </button>
-            <button
-              className={`view-tab ${viewMode === 'day' ? 'active' : ''}`}
-              onClick={() => onViewModeChange('day')}
-            >
-              Jour
-            </button>
-          </div>
         </div>
       </div>
 
