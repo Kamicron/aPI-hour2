@@ -78,11 +78,7 @@ export default function CalendarGrid({
 
   const handleDayClick = (day) => {
     if (day.isCurrentMonth) {
-      if (day.sessions && day.sessions.length > 0) {
-        onDayClick(day);
-      } else {
-        onDayClick(null);
-      }
+      onDayClick(day);
     }
   };
 

@@ -11,36 +11,49 @@ export default function DayDetails({ selectedDay, onAddSession }) {
   return (
     <div className="day-details">
       <div className="details-header">
-        <span className="material-icons">event</span>
-        <h3>Détails du jour</h3>
+        <div className="details-header-content">
+          <span className="material-icons">event</span>
+          <h3>Détails du jour</h3>
+        </div>
+        <button className="details-open-btn" onClick={() => window.location.href = `/day/${selectedDay.fullDate}`} title="Voir le détail du jour">
+          <span className="material-icons">open_in_new</span>
+        </button>
       </div>
+
       <div className="details-date">{selectedDay.fullDate}</div>
       <div className="details-total">Total : {selectedDay.totalDuration}</div>
-      
+
       <div className="details-sessions">
-        {selectedDay.sessions.map((session, idx) => (
-          <div key={idx} className="detail-session">
-            <div className="session-icon">
-              <span className="material-icons">
-                {session.status === 'ongoing' ? 'play_circle' : 'check_circle'}
-              </span>
-            </div>
-            <div className="session-info">
-              <div className="session-time">
-                {formatTime(session.startTime)} - {formatTime(session.endTime)}
+        {selectedDay.sessions && selectedDay.sessions.length > 0 ? (
+          selectedDay.sessions.map((session, idx) => (
+            <div key={idx} className="detail-session">
+              <div className="session-icon">
+                <span className="material-icons">
+                  {session.status === 'ongoing' ? 'play_circle' : 'check_circle'}
+                </span>
               </div>
-              <div className="session-duration">{session.duration}</div>
-              {session.pauseDuration && session.pauseDuration !== '00:00' && (
-                <div className="session-pause">Pause: {session.pauseDuration}</div>
-              )}
+              <div className="session-info">
+                <div className="session-time">
+                  {formatTime(session.startTime)} - {formatTime(session.endTime)}
+                </div>
+                <div className="session-duration">{session.duration}</div>
+                {session.pauseDuration && session.pauseDuration !== '00:00' && (
+                  <div className="session-pause">Pause: {session.pauseDuration}</div>
+                )}
+              </div>
+              <button className="session-menu-btn">
+                <span className="material-icons">more_vert</span>
+              </button>
             </div>
-            <button className="session-menu-btn">
-              <span className="material-icons">more_vert</span>
-            </button>
+          ))
+        ) : (
+          <div className="no-sessions-message">
+            <span className="material-icons">event_busy</span>
+            <p>Aucune session pour ce jour</p>
           </div>
-        ))}
+        )}
       </div>
-      
+
       <button className="add-session-btn" onClick={onAddSession}>
         <span className="material-icons">add</span>
         Ajouter une session
