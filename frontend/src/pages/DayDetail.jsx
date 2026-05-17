@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/dashboard/DashboardLayout';
+import SessionModal from '../components/modals/SessionModal';
+import DeleteConfirmModal from '../components/modals/DeleteConfirmModal';
 import './DayDetail.css';
 
 export default function DayDetail() {
@@ -9,8 +11,10 @@ export default function DayDetail() {
   const [sessions, setSessions] = useState([]);
   const [dayStats, setDayStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSession, setEditingSession] = useState(null);
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [sessionToDelete, setSessionToDelete] = useState(null);
 
   useEffect(() => {
     fetchDayData();
@@ -39,12 +43,56 @@ export default function DayDetail() {
     }
   };
 
-  const handleDeleteSession = async (sessionId) => {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cette session ?')) return;
+  const handleAddSession = () => {
+    setEditingSession(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEditSession = (session) => {
+    setEditingSession(session);
+    setIsModalOpen(true);
+  };
+
+  const handleSaveSession = async (formData) => {
+    try {
+      const token = localStorage.getItem('token');
+      const url = editingSession
+        ? `http://localhost:8080/api/time-entries/${editingSession.id}`
+        : 'http://localhost:8080/api/time-entries';
+      const method = editingSession ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
+
+      if (response.ok) {
+        setIsModalOpen(false);
+        setEditingSession(null);
+        fetchDayData();
+      } else {
+        console.error('Failed to save session');
+      }
+    } catch (error) {
+      console.error('Error saving session:', error);
+    }
+  };
+
+  const handleDeleteClick = (session) => {
+    setSessionToDelete(session);
+    setDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!sessionToDelete) return;
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8080/api/time-entries/${sessionId}`, {
+      const response = await fetch(`http://localhost:8080/api/time-entries/${sessionToDelete.id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -52,6 +100,8 @@ export default function DayDetail() {
       });
 
       if (response.ok) {
+        setDeleteModalOpen(false);
+        setSessionToDelete(null);
         fetchDayData();
       }
     } catch (error) {
@@ -136,7 +186,7 @@ export default function DayDetail() {
         <div className="sessions-section">
           <div className="sessions-header">
             <h2 className="sessions-title">Sessions de la journée</h2>
-            <button className="add-session-button" onClick={() => setShowAddModal(true)}>
+            <button className="add-session-button" onClick={handleAddSession}>
               <span className="material-icons">add</span>
               Ajouter une session
             </button>
@@ -184,16 +234,16 @@ export default function DayDetail() {
                     </div>
                   </div>
                   <div className="session-actions">
-                    <button 
+                    <button
                       className="action-btn edit-btn"
-                      onClick={() => setEditingSession(session)}
+                      onClick={() => handleEditSession(session)}
                       title="Modifier"
                     >
                       <span className="material-icons">edit</span>
                     </button>
-                    <button 
+                    <button
                       className="action-btn delete-btn"
-                      onClick={() => handleDeleteSession(session.id)}
+                      onClick={() => handleDeleteClick(session)}
                       title="Supprimer"
                     >
                       <span className="material-icons">delete</span>
@@ -204,6 +254,28 @@ export default function DayDetail() {
             </div>
           )}
         </div>
+
+        <SessionModal
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setEditingSession(null);
+          }}
+          onSave={handleSaveSession}
+          session={editingSession}
+          date={date}
+        />
+
+        <DeleteConfirmModal
+          isOpen={deleteModalOpen}
+          onClose={() => {
+            setDeleteModalOpen(false);
+            setSessionToDelete(null);
+          }}
+          onConfirm={handleDeleteConfirm}
+          title="Supprimer la session"
+          message="Êtes-vous sûr de vouloir supprimer cette session ? Cette action est irréversible."
+        />
       </div>
     </DashboardLayout>
   );
