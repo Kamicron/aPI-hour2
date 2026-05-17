@@ -497,10 +497,10 @@ public class StatsController {
       System.out.println("User ID: " + userId);
 
       List<Map<String, Object>> weekData = new ArrayList<>();
-      String[] dayNames = { "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi" };
+      String[] dayNames = { "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche" };
       String[] monthNames = { "jan", "fév", "mar", "avr", "mai", "jun", "jul", "aoû", "sep", "oct", "nov", "déc" };
 
-      for (int i = 0; i < 5; i++) {
+      for (int i = 0; i < 7; i++) {
         LocalDate currentDay = monday.plusDays(i);
         Date dayStart = Date.from(currentDay.atStartOfDay(ZoneId.systemDefault()).toInstant());
         Date dayEnd = Date.from(currentDay.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant());
