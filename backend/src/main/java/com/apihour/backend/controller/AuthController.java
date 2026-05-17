@@ -89,8 +89,17 @@ public class AuthController {
       Authentication authentication = authenticationManager.authenticate(
           new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword()));
       if (authentication.isAuthenticated()) {
+        Users existingUserForToken = userRepository.findByEmail(user.getEmail());
+        String accessToken = jwtUtils.generateToken(user.getEmail());
+        String refreshToken = jwtUtils.generateRefreshToken(user.getEmail());
+
+        existingUserForToken.setRefreshToken(refreshToken);
+        existingUserForToken.setRefreshTokenExpiry(new Date(System.currentTimeMillis() + 604800000));
+        userRepository.save(existingUserForToken);
+
         Map<String, Object> authData = new HashMap<>();
-        authData.put("token", jwtUtils.generateToken(user.getEmail()));
+        authData.put("token", accessToken);
+        authData.put("refreshToken", refreshToken);
         authData.put("type", "Bearer");
         return ResponseEntity.ok(authData);
       }
@@ -273,6 +282,50 @@ public class AuthController {
     }
 
     return ResponseEntity.ok(Map.of("message", "Password reset email sent successfully"));
+  }
+
+  @PostMapping("/refresh-token")
+  public ResponseEntity<?> refreshToken(@RequestBody Map<String, String> request) {
+    String refreshToken = request.get("refreshToken");
+
+    if (refreshToken == null || refreshToken.isEmpty()) {
+      return ResponseEntity.badRequest().body("Refresh token is required");
+    }
+
+    try {
+      String username = jwtUtils.extractUsername(refreshToken);
+      Users user = userRepository.findByEmail(username);
+
+      if (user == null || user.getRefreshToken() == null || !user.getRefreshToken().equals(refreshToken)) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid refresh token");
+      }
+
+      if (user.getRefreshTokenExpiry() == null || user.getRefreshTokenExpiry().before(new Date())) {
+        user.setRefreshToken(null);
+        user.setRefreshTokenExpiry(null);
+        userRepository.save(user);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Refresh token has expired");
+      }
+
+      String newAccessToken = jwtUtils.generateToken(username);
+      String newRefreshToken = jwtUtils.generateRefreshToken(username);
+
+      user.setRefreshToken(newRefreshToken);
+      user.setRefreshTokenExpiry(new Date(System.currentTimeMillis() + 604800000));
+      userRepository.save(user);
+
+      Map<String, Object> tokens = new HashMap<>();
+      tokens.put("token", newAccessToken);
+      tokens.put("refreshToken", newRefreshToken);
+      tokens.put("type", "Bearer");
+
+      logger.info("Token refreshed successfully for user: {}", username);
+      return ResponseEntity.ok(tokens);
+
+    } catch (Exception e) {
+      logger.error("Error refreshing token", e);
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid refresh token");
+    }
   }
 
 }
