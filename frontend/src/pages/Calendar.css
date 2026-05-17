@@ -21,12 +21,15 @@
   display: grid;
   grid-template-columns: 1fr 350px;
   gap: var(--spacing-xl);
+  height: calc(100vh - 100px);
 }
 
 .calendar-sidebar {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-lg);
+  overflow-y: auto;
+  max-height: 100%;
 }
 
 .export-section {
