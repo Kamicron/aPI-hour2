@@ -35,9 +35,6 @@ export default function Calendar() {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Calendar data received:', data);
-        console.log('Days array:', data.days);
-        console.log('Month stats:', data.monthStats);
         setCalendarData(data.days || []);
         setMonthStats(data.monthStats);
       } else {
