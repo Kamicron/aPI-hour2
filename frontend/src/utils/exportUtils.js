@@ -1,6 +1,38 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
+const formatHours = (hours) => {
+  const h = Math.floor(hours);
+  const m = Math.round((hours - h) * 60);
+  return `${h}h ${String(m).padStart(2, '0')}m`;
+};
+
+const calculateOvertimeBreakdown = (monthStats) => {
+  if (!monthStats || !monthStats.overtimeHours) {
+    return { hours25: '0h 00m', hours50: '0h 00m', compensated25: '0h 00m', compensated50: '0h 00m', totalCompensated: '0h 00m' };
+  }
+
+  // Use the breakdown data from the backend if available
+  if (monthStats.overtimeHours25 !== undefined && monthStats.overtimeHours50 !== undefined) {
+    return {
+      hours25: formatHours(monthStats.overtimeHours25),
+      hours50: formatHours(monthStats.overtimeHours50),
+      compensated25: formatHours(monthStats.overtimeCompensated25 || 0),
+      compensated50: formatHours(monthStats.overtimeCompensated50 || 0),
+      totalCompensated: monthStats.overtimeCompensatedTotal ? formatHours(monthStats.overtimeCompensatedTotal) : monthStats.overtimeHours
+    };
+  }
+
+  // Fallback if backend doesn't provide breakdown
+  return {
+    hours25: '0h 00m',
+    hours50: '0h 00m',
+    compensated25: '0h 00m',
+    compensated50: '0h 00m',
+    totalCompensated: monthStats.overtimeHours
+  };
+};
+
 export const exportToCSV = (calendarData, monthStats, currentDate) => {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth() + 1;
