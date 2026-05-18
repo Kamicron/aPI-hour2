@@ -63,6 +63,38 @@ public class StatsController {
     return totalHours;
   }
 
+  private Map<String, Double> calculateOvertimeWithFrenchRates(double weekHours, int weeklyGoal) {
+    Map<String, Double> result = new HashMap<>();
+    result.put("hours25", 0.0);
+    result.put("hours50", 0.0);
+    result.put("compensated25", 0.0);
+    result.put("compensated50", 0.0);
+    result.put("totalCompensated", 0.0);
+
+    if (weekHours <= weeklyGoal) {
+      return result;
+    }
+
+    double overtimeHours = weekHours - weeklyGoal;
+    double firstTierLimit = 8.0; // First 8 hours of overtime at 25%
+
+    if (overtimeHours <= firstTierLimit) {
+      // All overtime is in the first tier (25%)
+      result.put("hours25", overtimeHours);
+      result.put("compensated25", overtimeHours * 1.25);
+      result.put("totalCompensated", overtimeHours * 1.25);
+    } else {
+      // First 8 hours at 25%, remaining at 50%
+      result.put("hours25", firstTierLimit);
+      result.put("hours50", overtimeHours - firstTierLimit);
+      result.put("compensated25", firstTierLimit * 1.25);
+      result.put("compensated50", (overtimeHours - firstTierLimit) * 1.50);
+      result.put("totalCompensated", (firstTierLimit * 1.25) + ((overtimeHours - firstTierLimit) * 1.50));
+    }
+
+    return result;
+  }
+
   @GetMapping("/weekly-hours")
   public ResponseEntity<?> getWeeklyHours() {
     try {
