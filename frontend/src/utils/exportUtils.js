@@ -44,10 +44,17 @@ export const exportToCSV = (calendarData, monthStats, currentDate) => {
   csvRows.push([]);
 
   if (monthStats) {
+    const overtimeBreakdown = calculateOvertimeBreakdown(monthStats);
+
     csvRows.push(['Résumé du mois']);
     csvRows.push(['Heures réalisées', monthStats.totalHours]);
     csvRows.push(['Objectif', monthStats.goalHours]);
-    csvRows.push(['Heures sup', monthStats.overtimeHours]);
+    csvRows.push(['Heures supplémentaires', monthStats.overtimeHours]);
+    csvRows.push(['']);
+    csvRows.push(['Détail des heures supplémentaires à payer :']);
+    csvRows.push(['  - Heures à 25% (8 premières heures/semaine)', overtimeBreakdown.hours25]);
+    csvRows.push(['  - Heures à 50% (au-delà de 8h/semaine)', overtimeBreakdown.hours50]);
+    csvRows.push(['']);
     csvRows.push(['Progression', monthStats.progress + '%']);
     csvRows.push(['Période', `${monthStats.periodStart} - ${monthStats.periodEnd}`]);
     csvRows.push([]);
