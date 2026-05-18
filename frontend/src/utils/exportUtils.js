@@ -114,6 +114,8 @@ export const exportToPDF = (calendarData, monthStats, currentDate) => {
   let yPosition = 35;
 
   if (monthStats) {
+    const overtimeBreakdown = calculateOvertimeBreakdown(monthStats);
+
     doc.setFontSize(14);
     doc.text('Résumé du mois', 14, yPosition);
     yPosition += 10;
@@ -122,7 +124,7 @@ export const exportToPDF = (calendarData, monthStats, currentDate) => {
     const summaryData = [
       ['Heures réalisées', monthStats.totalHours],
       ['Objectif', monthStats.goalHours],
-      ['Heures sup', monthStats.overtimeHours],
+      ['Heures supplémentaires', monthStats.overtimeHours],
       ['Progression', monthStats.progress + '%'],
       ['Période', `${monthStats.periodStart} - ${monthStats.periodEnd}`]
     ];
@@ -133,7 +135,30 @@ export const exportToPDF = (calendarData, monthStats, currentDate) => {
       body: summaryData,
       theme: 'grid',
       headStyles: { fillColor: [99, 102, 241] },
-      margin: { left: 14 }
+      margin: { left: 14 },
+      styles: { fontSize: 10 }
+    });
+
+    yPosition = doc.lastAutoTable.finalY + 10;
+
+    // Add overtime breakdown section
+    doc.setFontSize(12);
+    doc.text('Détail des majorations (loi française)', 14, yPosition);
+    yPosition += 5;
+
+    const overtimeData = [
+      ['Heures à 25% (8 premières/semaine)', overtimeBreakdown.hours25],
+      ['Heures à 50% (au-delà de 8h/semaine)', overtimeBreakdown.hours50]
+    ];
+
+    autoTable(doc, {
+      startY: yPosition,
+      head: [['Type de majoration', 'Heures à payer']],
+      body: overtimeData,
+      theme: 'striped',
+      headStyles: { fillColor: [99, 102, 241] },
+      margin: { left: 14 },
+      styles: { fontSize: 9 }
     });
 
     yPosition = doc.lastAutoTable.finalY + 15;
