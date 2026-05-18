@@ -320,9 +320,10 @@ public class StatsController {
         stats.put("totalDuration", String.format("%02d:%02d", totalMinutes / 60, totalMinutes % 60));
 
         double totalHours = netWorkMillis / (1000.0 * 60 * 60);
-        double overtime = totalHours - dailyGoal;
-        if (overtime > 0) {
-          int overtimeMinutes = (int) (overtime * 60);
+        Map<String, Double> overtimeResult = calculateOvertimeWithFrenchRates(totalHours, dailyGoal);
+        double overtimeCompensated = overtimeResult.get("totalCompensated");
+        if (overtimeCompensated > 0) {
+          int overtimeMinutes = (int) (overtimeCompensated * 60);
           stats.put("overtime", String.format("%02d:%02d", overtimeMinutes / 60, overtimeMinutes % 60));
         } else {
           stats.put("overtime", "00:00");
@@ -628,11 +629,12 @@ public class StatsController {
           int minutes = totalMinutes % 60;
           dayData.put("totalDuration", String.format("%02d:%02d", hours, minutes));
 
-          // Calculate overtime
+          // Calculate overtime with French rates
           double totalHours = netWorkMillis / (1000.0 * 60 * 60);
-          double overtime = totalHours - dailyGoal;
-          if (overtime > 0) {
-            int overtimeMinutes = (int) (overtime * 60);
+          Map<String, Double> overtimeResult = calculateOvertimeWithFrenchRates(totalHours, dailyGoal);
+          double overtimeCompensated = overtimeResult.get("totalCompensated");
+          if (overtimeCompensated > 0) {
+            int overtimeMinutes = (int) (overtimeCompensated * 60);
             dayData.put("overtime", String.format("%02d:%02d", overtimeMinutes / 60, overtimeMinutes % 60));
           } else {
             dayData.put("overtime", "00:00");
