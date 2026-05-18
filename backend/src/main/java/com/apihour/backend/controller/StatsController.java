@@ -158,8 +158,12 @@ public class StatsController {
           ? lastOfMonth
           : lastOfMonth.with(TemporalAdjusters.next(DayOfWeek.SUNDAY));
 
-      // Calculate overtime week by week, only counting positive overtime
-      double monthlyOvertime = 0.0;
+      // Calculate overtime week by week with French rates (25% for hours 36-43, 50%
+      // beyond)
+      double monthlyRealOvertime = 0.0;
+      double monthlyOvertimeTotal = 0.0;
+      double monthlyCompensated25 = 0.0;
+      double monthlyCompensated50 = 0.0;
       LocalDate weekStart = monthStart;
 
       while (!weekStart.isAfter(monthEnd)) {
@@ -172,17 +176,18 @@ public class StatsController {
         Date weekEndDate = Date.from(weekEnd.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant());
 
         double weekHours = calculateHoursForPeriod(userId, weekStartDate, weekEndDate);
-        double weekOvertime = weekHours - weeklyGoal;
+        Map<String, Double> weekOvertime = calculateOvertimeWithFrenchRates(weekHours, weeklyGoal);
 
-        // Only add positive overtime (hours worked above goal)
-        if (weekOvertime > 0) {
-          monthlyOvertime += weekOvertime;
-        }
+        double weekRealOvertime = Math.max(0, weekHours - weeklyGoal);
+        monthlyRealOvertime += weekRealOvertime;
+        monthlyOvertimeTotal += weekOvertime.get("totalCompensated");
+        monthlyCompensated25 += weekOvertime.get("compensated25");
+        monthlyCompensated50 += weekOvertime.get("compensated50");
 
         weekStart = weekStart.plusWeeks(1);
       }
 
-      // Calculate current week overtime
+      // Calculate current week overtime with French rates
       LocalDate currentMonday = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
       LocalDate currentSunday = today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
 
@@ -190,16 +195,19 @@ public class StatsController {
       Date currentWeekEnd = Date.from(currentSunday.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant());
 
       double currentWeekHours = calculateHoursForPeriod(userId, currentWeekStart, currentWeekEnd);
-      double currentWeekOvertime = currentWeekHours - weeklyGoal;
-
-      // Only return positive overtime for current week
-      if (currentWeekOvertime < 0) {
-        currentWeekOvertime = 0;
-      }
+      Map<String, Double> currentWeekOvertime = calculateOvertimeWithFrenchRates(currentWeekHours, weeklyGoal);
 
       Map<String, Object> response = new HashMap<>();
-      response.put("monthlyOvertime", Math.round(monthlyOvertime * 100.0) / 100.0);
-      response.put("weeklyOvertime", Math.round(currentWeekOvertime * 100.0) / 100.0);
+      response.put("monthlyRealOvertime", Math.round(monthlyRealOvertime * 100.0) / 100.0);
+      response.put("monthlyOvertime", Math.round(monthlyOvertimeTotal * 100.0) / 100.0);
+      response.put("monthlyCompensated25", Math.round(monthlyCompensated25 * 100.0) / 100.0);
+      response.put("monthlyCompensated50", Math.round(monthlyCompensated50 * 100.0) / 100.0);
+
+      double currentWeekRealOvertime = Math.max(0, currentWeekHours - weeklyGoal);
+      response.put("weeklyRealOvertime", Math.round(currentWeekRealOvertime * 100.0) / 100.0);
+      response.put("weeklyOvertime", Math.round(currentWeekOvertime.get("totalCompensated") * 100.0) / 100.0);
+      response.put("weeklyCompensated25", Math.round(currentWeekOvertime.get("compensated25") * 100.0) / 100.0);
+      response.put("weeklyCompensated50", Math.round(currentWeekOvertime.get("compensated50") * 100.0) / 100.0);
       response.put("monthStart", Date.from(monthStart.atStartOfDay(ZoneId.systemDefault()).toInstant()));
       response.put("monthEnd", Date.from(monthEnd.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant()));
 
