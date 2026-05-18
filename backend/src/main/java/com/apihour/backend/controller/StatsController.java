@@ -487,13 +487,54 @@ public class StatsController {
       int monthGoal = workingDays * dailyGoal;
       monthStats.put("goalHours", monthGoal + "h 00m");
 
-      double overtime = totalHours - monthGoal;
-      if (overtime > 0) {
-        int overtimeHoursInt = (int) overtime;
-        int overtimeMinutes = (int) ((overtime - overtimeHoursInt) * 60);
+      // Calculate overtime week by week with French rates
+      double monthlyRealOvertime = 0.0;
+      double monthlyHours25 = 0.0;
+      double monthlyHours50 = 0.0;
+      double monthlyOvertimeTotal = 0.0;
+      double monthlyCompensated25 = 0.0;
+      double monthlyCompensated50 = 0.0;
+      LocalDate weekStart = periodStart;
+
+      while (!weekStart.isAfter(periodEnd)) {
+        LocalDate weekEnd = weekStart.plusDays(6); // Sunday
+        if (weekEnd.isAfter(periodEnd)) {
+          weekEnd = periodEnd;
+        }
+
+        Date weekStartDate = Date.from(weekStart.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        Date weekEndDate = Date.from(weekEnd.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant());
+
+        double weekHours = calculateHoursForPeriod(userId, weekStartDate, weekEndDate);
+        Map<String, Double> weekOvertime = calculateOvertimeWithFrenchRates(weekHours, weeklyGoal);
+
+        double weekRealOvertime = Math.max(0, weekHours - weeklyGoal);
+        monthlyRealOvertime += weekRealOvertime;
+        monthlyHours25 += weekOvertime.get("hours25");
+        monthlyHours50 += weekOvertime.get("hours50");
+        monthlyOvertimeTotal += weekOvertime.get("totalCompensated");
+        monthlyCompensated25 += weekOvertime.get("compensated25");
+        monthlyCompensated50 += weekOvertime.get("compensated50");
+
+        weekStart = weekStart.plusWeeks(1);
+      }
+
+      if (monthlyRealOvertime > 0) {
+        int overtimeHoursInt = (int) monthlyRealOvertime;
+        int overtimeMinutes = (int) ((monthlyRealOvertime - overtimeHoursInt) * 60);
         monthStats.put("overtimeHours", String.format("%dh %02dm", overtimeHoursInt, overtimeMinutes));
+        monthStats.put("overtimeHours25", Math.round(monthlyHours25 * 100.0) / 100.0);
+        monthStats.put("overtimeHours50", Math.round(monthlyHours50 * 100.0) / 100.0);
+        monthStats.put("overtimeCompensated25", Math.round(monthlyCompensated25 * 100.0) / 100.0);
+        monthStats.put("overtimeCompensated50", Math.round(monthlyCompensated50 * 100.0) / 100.0);
+        monthStats.put("overtimeCompensatedTotal", Math.round(monthlyOvertimeTotal * 100.0) / 100.0);
       } else {
         monthStats.put("overtimeHours", "0h 00m");
+        monthStats.put("overtimeHours25", 0.0);
+        monthStats.put("overtimeHours50", 0.0);
+        monthStats.put("overtimeCompensated25", 0.0);
+        monthStats.put("overtimeCompensated50", 0.0);
+        monthStats.put("overtimeCompensatedTotal", 0.0);
       }
 
       double progress = monthGoal > 0 ? (totalHours / monthGoal) * 100 : 0;
