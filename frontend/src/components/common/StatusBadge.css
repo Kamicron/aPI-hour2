@@ -1,0 +1,43 @@
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.status-icon {
+  font-size: 14px;
+}
+
+.status-label {
+  line-height: 1;
+}
+
+.status-pending {
+  background-color: #fff4e6;
+  color: #f59e0b;
+}
+
+.status-approved {
+  background-color: #d1fae5;
+  color: #10b981;
+}
+
+.status-rejected {
+  background-color: #fee2e2;
+  color: #ef4444;
+}
+
+.status-automatic {
+  background-color: #e0e7ff;
+  color: #6366f1;
+}
+
+.status-sick {
+  background-color: #fef3c7;
+  color: #f59e0b;
+}

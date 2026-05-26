@@ -12,22 +12,16 @@ export default function BottomNav() {
       path: '/dashboard'
     },
     {
-      id: 'sessions',
-      label: 'Sessions',
-      icon: 'schedule',
-      path: '/sessions'
-    },
-    {
       id: 'calendar',
       label: 'Calendrier',
       icon: 'calendar_month',
       path: '/calendar'
     },
     {
-      id: 'reports',
-      label: 'Rapports',
-      icon: 'assessment',
-      path: '/reports'
+      id: 'vacations',
+      label: 'Vacances',
+      icon: 'beach_access',
+      path: '/vacations'
     },
     {
       id: 'settings',

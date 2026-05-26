@@ -1,0 +1,16 @@
+.type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #374151;
+}
+
+.type-icon {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.type-label {
+  font-weight: 500;
+}

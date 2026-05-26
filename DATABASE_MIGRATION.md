@@ -145,9 +145,31 @@ ALTER TABLE `user_sessions`
 
 ---
 
-## ✅ Étape 6 : Vérification post-migration
+## 🔄 Étape 6 : Migration de la table `vacations`
 
-### 6.1 - Vérifier la structure des tables
+```sql
+ALTER TABLE `vacations` 
+  CHANGE COLUMN `startDate` `start_date` date NOT NULL,
+  CHANGE COLUMN `endDate` `end_date` date NOT NULL,
+  CHANGE COLUMN `createdAt` `created_at` datetime(6) NOT NULL,
+  CHANGE COLUMN `updatedAt` `updated_at` datetime(6) NOT NULL,
+  CHANGE COLUMN `userId` `user_id` varchar(36) NOT NULL;
+```
+
+**Colonnes renommées :**
+- `startDate` → `start_date`
+- `endDate` → `end_date`
+- `createdAt` → `created_at`
+- `updatedAt` → `updated_at`
+- `userId` → `user_id`
+
+**Note :** Les colonnes `id`, `status` et `reason` sont déjà au bon format et ne nécessitent pas de modification.
+
+---
+
+## ✅ Étape 7 : Vérification post-migration
+
+### 7.1 - Vérifier la structure des tables
 
 ```sql
 -- Vérifier la table users
@@ -161,9 +183,12 @@ DESCRIBE pauses;
 
 -- Vérifier la table user_sessions
 DESCRIBE user_sessions;
+
+-- Vérifier la table leave_requests
+DESCRIBE leave_requests;
 ```
 
-### 6.2 - Vérifier l'intégrité des données
+### 7.2 - Vérifier l'intégrité des données
 
 ```sql
 -- Compter les enregistrements dans chaque table
@@ -173,10 +198,12 @@ SELECT 'time_entries', COUNT(*) FROM time_entries
 UNION ALL
 SELECT 'pauses', COUNT(*) FROM pauses
 UNION ALL
-SELECT 'user_sessions', COUNT(*) FROM user_sessions;
+SELECT 'user_sessions', COUNT(*) FROM user_sessions
+UNION ALL
+SELECT 'leave_requests', COUNT(*) FROM leave_requests;
 ```
 
-### 6.3 - Tester une requête de jointure
+### 7.3 - Tester une requête de jointure
 
 ```sql
 -- Vérifier que les clés étrangères fonctionnent toujours
@@ -193,9 +220,23 @@ GROUP BY u.id, te.id
 LIMIT 5;
 ```
 
+```sql
+-- Vérifier les demandes de congés
+SELECT 
+    u.email,
+    lr.start_date,
+    lr.end_date,
+    lr.status,
+    lr.reason
+FROM users u
+LEFT JOIN leave_requests lr ON lr.user_id = u.id
+WHERE lr.status = 'pending'
+LIMIT 5;
+```
+
 ---
 
-## 🚀 Étape 7 : Redémarrage de l'application
+## 🚀 Étape 8 : Redémarrage de l'application
 
 1. **Vérifier** que toutes les migrations ont réussi
 2. **Redémarrer** le backend Spring Boot
@@ -231,6 +272,7 @@ mysql -u [username] -p aPi-hour < backup_api-hour_[timestamp].sql
 - [ ] Étape 3 : Table `time_entries` migrée
 - [ ] Étape 4 : Table `pauses` migrée
 - [ ] Étape 5 : Table `user_sessions` migrée
+- [ ] Étape 6 : Table `leave_requests` migrée
 - [ ] Vérifications post-migration effectuées
 - [ ] Application redémarrée
 - [ ] Tests fonctionnels validés

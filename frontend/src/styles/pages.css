@@ -1,0 +1,20 @@
+.page-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--bg-primary);
+}
+
+.page-content {
+  flex: 1;
+  margin-left: 260px;
+  padding: 0;
+  background-color: var(--bg-secondary);
+  min-height: 100vh;
+}
+
+@media (max-width: 768px) {
+  .page-content {
+    margin-left: 0;
+    padding-bottom: 70px;
+  }
+}

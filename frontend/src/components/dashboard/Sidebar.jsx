@@ -24,6 +24,12 @@ export default function Sidebar() {
       path: '/calendar'
     },
     {
+      id: 'vacations',
+      label: 'Vacances',
+      icon: 'beach_access',
+      path: '/vacations'
+    },
+    {
       id: 'settings',
       label: 'Paramètres',
       icon: 'settings',
