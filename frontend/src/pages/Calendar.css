@@ -15,15 +15,24 @@
   margin: 0;
 }
 
+.calendar-page {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--spacing-xl) 0;
+}
+
 .calendar-container {
   display: grid;
   grid-template-columns: 1fr 350px;
   gap: var(--spacing-xl);
-  height: calc(100vh - 100px);
+  min-height: 100%;
+  align-items: start;
 }
 
 .calendar-section {
   position: relative;
+  align-self: start;
 }
 
 .calendar-loading-overlay {
@@ -57,8 +66,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-lg);
-  overflow-y: auto;
-  max-height: 100%;
+  overflow: visible;
+  max-height: none;
 }
 
 .export-section {
@@ -142,12 +151,14 @@
   .calendar-sidebar {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    overflow: visible;
+    max-height: none;
   }
 }
 
 @media (max-width: 768px) {
   .calendar-page {
-    padding: var(--spacing-md);
+    padding: var(--spacing-md) 0;
   }
 
   .calendar-controls {

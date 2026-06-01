@@ -27,6 +27,10 @@
   overflow-x: hidden;
 }
 
+.dashboard-content.no-scroll {
+  overflow: hidden;
+}
+
 @media (max-width: 768px) {
   .dashboard-layout {
     flex-direction: column;

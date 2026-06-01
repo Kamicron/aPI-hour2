@@ -4,14 +4,14 @@ import MobileHeader from './MobileHeader';
 import BottomNav from './BottomNav';
 import './DashboardLayout.css';
 
-export default function DashboardLayout({ children }) {
+export default function DashboardLayout({ children, contentClassName = '' }) {
   return (
     <div className="dashboard-layout">
       <Sidebar />
       <MobileHeader />
       <div className="dashboard-main">
         <DashboardHeader />
-        <main className="dashboard-content">
+        <main className={`dashboard-content ${contentClassName}`.trim()}>
           {children}
         </main>
       </div>
