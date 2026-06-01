@@ -32,16 +32,18 @@ export default function Calendar() {
   const cacheRef = useRef(new Map());
 
   useEffect(() => {
+    const dayParam = searchParams.get('day');
     const nextDate = getDateFromSearchParams();
     if (
       nextDate.getFullYear() !== currentDate.getFullYear() ||
       nextDate.getMonth() !== currentDate.getMonth()
     ) {
       setCurrentDate(nextDate);
-      setSelectedDay(null);
+      if (!dayParam) {
+        setSelectedDay(null);
+      }
     }
 
-    const dayParam = searchParams.get('day');
     if (dayParam) {
       const [y, m] = dayParam.split('-').map(Number);
       if (Number.isFinite(y) && Number.isFinite(m) && y === nextDate.getFullYear() && (m - 1) === nextDate.getMonth()) {
@@ -125,11 +127,17 @@ export default function Calendar() {
   const goToToday = () => {
     const next = new Date();
     setCurrentDate(next);
+    const dayStr = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}-${String(next.getDate()).padStart(2, '0')}`;
+    setSelectedDay({
+      fullDate: dayStr,
+      sessions: [],
+      totalDuration: ''
+    });
     setSearchParams({
       year: String(next.getFullYear()),
-      month: String(next.getMonth() + 1).padStart(2, '0')
+      month: String(next.getMonth() + 1).padStart(2, '0'),
+      day: dayStr
     });
-    setSelectedDay(null);
   };
 
   const handleDayClick = (day) => {
