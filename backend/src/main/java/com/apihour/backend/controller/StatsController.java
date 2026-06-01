@@ -356,27 +356,18 @@ public class StatsController {
       int weeklyGoal = user.getWeeklyHoursGoal() != null ? user.getWeeklyHoursGoal() : 40;
       int dailyGoal = weeklyGoal / 5;
 
-      // Calculate period boundaries (Monday to Sunday)
+      // Calculate period boundaries (full weeks: Monday to Sunday)
       LocalDate firstOfMonth = LocalDate.of(year, month, 1);
       LocalDate lastOfMonth = firstOfMonth.withDayOfMonth(firstOfMonth.lengthOfMonth());
 
-      // If 1st is not Monday, go back to last Monday of previous month
-      LocalDate periodStart = firstOfMonth;
-      if (firstOfMonth.getDayOfWeek() != DayOfWeek.MONDAY) {
-        periodStart = firstOfMonth.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-      }
+      LocalDate periodStart = firstOfMonth.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+      LocalDate periodEnd = lastOfMonth.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
 
-      // If last day is not Sunday, go back to previous Sunday
-      LocalDate periodEnd = lastOfMonth;
-      if (lastOfMonth.getDayOfWeek() != DayOfWeek.SUNDAY) {
-        periodEnd = lastOfMonth.with(TemporalAdjusters.previous(DayOfWeek.SUNDAY));
-      }
-
-      Date monthStart = Date.from(periodStart.atStartOfDay(ZoneId.systemDefault()).toInstant());
-      Date monthEnd = Date.from(periodEnd.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant());
+      Date periodStartDate = Date.from(periodStart.atStartOfDay(ZoneId.systemDefault()).toInstant());
+      Date periodEndDate = Date.from(periodEnd.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant());
 
       // Get all entries for the period
-      List<TimeEntry> allEntries = timeEntryRepository.findByUserIdAndStartTimeBetween(userId, monthStart, monthEnd);
+      List<TimeEntry> allEntries = timeEntryRepository.findByUserIdAndStartTimeBetween(userId, periodStartDate, periodEndDate);
 
       // Group entries by day
       Map<String, List<TimeEntry>> entriesByDay = new HashMap<>();
@@ -535,6 +526,23 @@ public class StatsController {
         monthStats.put("overtimeCompensated25", 0.0);
         monthStats.put("overtimeCompensated50", 0.0);
         monthStats.put("overtimeCompensatedTotal", 0.0);
+      }
+
+      double balanceHours = totalHours - monthGoal;
+      monthStats.put("balanceHours", Math.round(balanceHours * 100.0) / 100.0);
+      if (balanceHours < 0) {
+        double missing = -balanceHours;
+        int missingHoursInt = (int) missing;
+        int missingMinutes = (int) ((missing - missingHoursInt) * 60);
+        monthStats.put("missingHours", String.format("%dh %02dm", missingHoursInt, missingMinutes));
+        monthStats.put("overtimeHours", "0h 00m");
+        monthStats.put("overtimeHours25", 0.0);
+        monthStats.put("overtimeHours50", 0.0);
+        monthStats.put("overtimeCompensated25", 0.0);
+        monthStats.put("overtimeCompensated50", 0.0);
+        monthStats.put("overtimeCompensatedTotal", 0.0);
+      } else {
+        monthStats.put("missingHours", "0h 00m");
       }
 
       double progress = monthGoal > 0 ? (totalHours / monthGoal) * 100 : 0;

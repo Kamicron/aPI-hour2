@@ -1,7 +1,16 @@
-import './MonthSummary.css';
+import "./MonthSummary.css";
 
 export default function MonthSummary({ monthStats }) {
   if (!monthStats) return null;
+
+  const isMissing =
+    typeof monthStats.balanceHours === "number"
+      ? monthStats.balanceHours < 0
+      : false;
+  const balanceLabel = isMissing ? "Heures manquantes" : "Heures sup";
+  const balanceValue = isMissing
+    ? monthStats.missingHours || "0h 00m"
+    : monthStats.overtimeHours;
 
   return (
     <div className="month-summary">
@@ -19,8 +28,8 @@ export default function MonthSummary({ monthStats }) {
           <span className="stat-value">{monthStats.goalHours}</span>
         </div>
         <div className="summary-stat">
-          <span className="stat-label">Heures sup</span>
-          <span className="stat-value">{monthStats.overtimeHours}</span>
+          <span className="stat-label">{balanceLabel}</span>
+          <span className="stat-value">{balanceValue}</span>
         </div>
         <div className="summary-stat">
           <span className="stat-label">Progression</span>
@@ -28,8 +37,8 @@ export default function MonthSummary({ monthStats }) {
         </div>
       </div>
       <div className="progress-bar">
-        <div 
-          className="progress-fill" 
+        <div
+          className="progress-fill"
           style={{ width: `${Math.min(monthStats.progress, 100)}%` }}
         ></div>
       </div>

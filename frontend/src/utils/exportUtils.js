@@ -45,11 +45,14 @@ export const exportToCSV = (calendarData, monthStats, currentDate) => {
 
   if (monthStats) {
     const overtimeBreakdown = calculateOvertimeBreakdown(monthStats);
+    const isMissing = typeof monthStats.balanceHours === 'number' ? monthStats.balanceHours < 0 : false;
+    const balanceLabel = isMissing ? 'Heures manquantes' : 'Heures supplémentaires';
+    const balanceValue = isMissing ? (monthStats.missingHours || '0h 00m') : monthStats.overtimeHours;
 
     csvRows.push(['Résumé du mois']);
     csvRows.push(['Heures réalisées', monthStats.totalHours]);
     csvRows.push(['Objectif', monthStats.goalHours]);
-    csvRows.push(['Heures supplémentaires', monthStats.overtimeHours]);
+    csvRows.push([balanceLabel, balanceValue]);
     csvRows.push(['']);
     csvRows.push(['Détail des heures supplémentaires à payer :']);
     csvRows.push(['  - Heures à 25% (8 premières heures/semaine)', overtimeBreakdown.hours25]);
@@ -115,6 +118,9 @@ export const exportToPDF = (calendarData, monthStats, currentDate) => {
 
   if (monthStats) {
     const overtimeBreakdown = calculateOvertimeBreakdown(monthStats);
+    const isMissing = typeof monthStats.balanceHours === 'number' ? monthStats.balanceHours < 0 : false;
+    const balanceLabel = isMissing ? 'Heures manquantes' : 'Heures supplémentaires';
+    const balanceValue = isMissing ? (monthStats.missingHours || '0h 00m') : monthStats.overtimeHours;
 
     doc.setFontSize(14);
     doc.text('Résumé du mois', 14, yPosition);
@@ -124,7 +130,7 @@ export const exportToPDF = (calendarData, monthStats, currentDate) => {
     const summaryData = [
       ['Heures réalisées', monthStats.totalHours],
       ['Objectif', monthStats.goalHours],
-      ['Heures supplémentaires', monthStats.overtimeHours],
+      [balanceLabel, balanceValue],
       ['Progression', monthStats.progress + '%'],
       ['Période', `${monthStats.periodStart} - ${monthStats.periodEnd}`]
     ];
