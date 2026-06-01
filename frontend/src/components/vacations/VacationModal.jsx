@@ -70,10 +70,10 @@ const VacationModal = ({ isOpen, onClose, onSave, vacation, mode = 'create' }) =
               className="form-select"
               required
             >
-              <option value="pending">Congé payé</option>
+              <option value="pending">En attente</option>
               <option value="public_holiday">Jour férié</option>
               <option value="sick_leave">Maladie</option>
-              <option value="approved">RTT</option>
+              <option value="approved">Validé</option>
             </select>
           </div>
 

@@ -8,7 +8,7 @@ const StatusBadge = ({ status }) => {
       approved: { label: 'Validé', icon: '✓', className: 'status-approved' },
       rejected: { label: 'Décliné', icon: '✗', className: 'status-rejected' },
       public_holiday: { label: 'Automatique', icon: '🎉', className: 'status-automatic' },
-      sick_leave: { label: 'Victoire 1945', icon: '🏥', className: 'status-sick' }
+      sick_leave: { label: 'Maladie', icon: '🏥', className: 'status-sick' }
     };
     return configs[status] || configs.pending;
   };

@@ -41,6 +41,7 @@ export default function CalendarGrid({
         fullDate: dateStr,
         sessions: dayData?.sessions || [],
         totalDuration: dayData?.totalDuration,
+        vacationStatus: dayData?.vacationStatus,
         isToday: isToday(year, month, i)
       });
     }
@@ -85,6 +86,19 @@ export default function CalendarGrid({
   const days = getDaysInMonth();
   const weekDays = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 
+  const getVacationClass = (vacationStatus) => {
+    if (!vacationStatus) return '';
+    return `vacation-${vacationStatus}`;
+  };
+
+  const getVacationLabel = (vacationStatus) => {
+    if (!vacationStatus) return '';
+    if (vacationStatus === 'public_holiday') return 'Férié';
+    if (vacationStatus === 'sick_leave') return 'Maladie';
+    if (vacationStatus === 'approved') return 'Congé';
+    return vacationStatus;
+  };
+
   return (
     <div className="calendar-main">
       <div className="calendar-controls">
@@ -120,11 +134,17 @@ export default function CalendarGrid({
               className={`calendar-day ${!day.isCurrentMonth ? 'other-month' : ''} 
                          ${day.isToday ? 'today' : ''} 
                          ${selectedDay && day.isCurrentMonth && selectedDay.fullDate === day.fullDate ? 'selected' : ''}
-                         ${day.sessions?.length > 0 ? 'has-sessions' : ''}`}
+                         ${day.sessions?.length > 0 ? 'has-sessions' : ''}
+                         ${getVacationClass(day.vacationStatus)}`}
               onClick={() => handleDayClick(day)}
             >
               <div className="day-number">
                 {day.date}
+                {day.isCurrentMonth && day.vacationStatus && (
+                  <span className="vacation-indicator" title={getVacationLabel(day.vacationStatus)}>
+                    {getVacationLabel(day.vacationStatus)}
+                  </span>
+                )}
                 {day.isCurrentMonth && day.sessions && day.sessions.length > 0 && (
                   <span className="session-indicator">{day.sessions.length}</span>
                 )}

@@ -186,7 +186,7 @@
 }
 
 .calendar-day.today::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 4px;
   right: 4px;
@@ -244,6 +244,32 @@
   font-weight: var(--font-weight-bold);
 }
 
+.vacation-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  height: 18px;
+  border-radius: var(--radius-full);
+  font-size: 10px;
+  font-weight: var(--font-weight-bold);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+}
+
+.calendar-day.vacation-approved {
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.calendar-day.vacation-public_holiday {
+  background: rgba(99, 102, 241, 0.08);
+}
+
+.calendar-day.vacation-sick_leave {
+  background: rgba(239, 68, 68, 0.08);
+}
+
 .day-content {
   display: flex;
   flex-direction: column;
@@ -282,7 +308,6 @@
 }
 
 @keyframes pulse {
-
   0%,
   100% {
     opacity: 1;

@@ -21,7 +21,7 @@ export default function VacationSummary({ stats }) {
           <div className="breakdown-item">
             <div className="breakdown-left">
               <span className="breakdown-dot" style={{ backgroundColor: '#3b82f6' }}></span>
-              <span className="breakdown-label">Congé payé</span>
+              <span className="breakdown-label">En attente</span>
             </div>
             <span className="breakdown-value">{stats.congePaye} jours</span>
           </div>
@@ -29,7 +29,7 @@ export default function VacationSummary({ stats }) {
           <div className="breakdown-item">
             <div className="breakdown-left">
               <span className="breakdown-dot" style={{ backgroundColor: '#8b5cf6' }}></span>
-              <span className="breakdown-label">RTT</span>
+              <span className="breakdown-label">Validé</span>
             </div>
             <span className="breakdown-value">{stats.rtt} jour</span>
           </div>

@@ -64,8 +64,8 @@ export default function VacationForm({ vacation, onSave, onCancel }) {
             required
           >
             <option value="">Sélectionner un type</option>
-            <option value="pending">Congé payé</option>
-            <option value="approved">RTT</option>
+            <option value="pending">En attente</option>
+            <option value="approved">Validé</option>
             <option value="sick_leave">Maladie</option>
             <option value="public_holiday">Jour férié</option>
           </select>

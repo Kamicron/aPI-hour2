@@ -370,7 +370,7 @@ function getStatusLabel(status) {
     approved: 'Validé',
     rejected: 'Décliné',
     public_holiday: 'Automatique',
-    sick_leave: 'Victoire 1945'
+    sick_leave: 'Maladie'
   };
   return labels[status] || 'En attente';
 }

@@ -432,6 +432,39 @@ public class StatsController {
         entriesByDay.computeIfAbsent(dateStr, k -> new ArrayList<>()).add(entry);
       }
 
+      Map<String, String> vacationStatusByDay = new HashMap<>();
+      List<Vacation> vacations = vacationRepository.findByUserId(userId);
+      if (vacations != null && !vacations.isEmpty()) {
+        for (Vacation vacation : vacations) {
+          if (vacation.getStartDate() == null || vacation.getEndDate() == null) {
+            continue;
+          }
+
+          Vacation.VacationStatus status = vacation.getStatus();
+          if (status != Vacation.VacationStatus.approved
+              && status != Vacation.VacationStatus.public_holiday
+              && status != Vacation.VacationStatus.sick_leave) {
+            continue;
+          }
+
+          LocalDate vacStart = vacation.getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+          LocalDate vacEnd = vacation.getEndDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
+          if (vacEnd.isBefore(periodStart) || vacStart.isAfter(periodEnd)) {
+            continue;
+          }
+
+          LocalDate start = vacStart.isBefore(periodStart) ? periodStart : vacStart;
+          LocalDate end = vacEnd.isAfter(periodEnd) ? periodEnd : vacEnd;
+
+          LocalDate d = start;
+          while (!d.isAfter(end)) {
+            vacationStatusByDay.put(d.toString(), status.name());
+            d = d.plusDays(1);
+          }
+        }
+      }
+
       // Build days data for entire period
       List<Map<String, Object>> daysData = new ArrayList<>();
       long totalMonthWorkMillis = 0;
@@ -443,9 +476,14 @@ public class StatsController {
         String dateStr = currentDate.toString();
         List<TimeEntry> dayEntries = entriesByDay.getOrDefault(dateStr, new ArrayList<>());
 
-        if (!dayEntries.isEmpty()) {
+        String vacationStatus = vacationStatusByDay.get(dateStr);
+
+        if (!dayEntries.isEmpty() || vacationStatus != null) {
           Map<String, Object> dayData = new HashMap<>();
           dayData.put("date", dateStr);
+          if (vacationStatus != null) {
+            dayData.put("vacationStatus", vacationStatus);
+          }
 
           List<Map<String, Object>> sessions = new ArrayList<>();
           long dayWorkMillis = 0;
