@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface PauseRepository extends JpaRepository<Pause, String> {
   List<Pause> findByTimeEntryId(String timeEntryId);
+
+  List<Pause> findByTimeEntryIdIn(List<String> timeEntryIds);
 }

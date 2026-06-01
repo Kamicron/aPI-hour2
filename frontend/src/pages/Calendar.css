@@ -22,6 +22,37 @@
   height: calc(100vh - 100px);
 }
 
+.calendar-section {
+  position: relative;
+}
+
+.calendar-loading-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(2px);
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.calendar-loading-spinner {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.35);
+  border-top-color: var(--color-primary);
+  animation: calendar-spin 0.9s linear infinite;
+}
+
+@keyframes calendar-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .calendar-sidebar {
   display: flex;
   flex-direction: column;

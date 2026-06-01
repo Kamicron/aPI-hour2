@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import DashboardLayout from '../components/dashboard/DashboardLayout';
 import CalendarGrid from '../components/calendar/CalendarGrid';
 import MonthSummary from '../components/calendar/MonthSummary';
@@ -7,30 +8,74 @@ import { exportToCSV, exportToPDF } from '../utils/exportUtils';
 import './Calendar.css';
 
 export default function Calendar() {
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [searchParams, setSearchParams] = useSearchParams();
+  const getDateFromSearchParams = () => {
+    const yearParam = searchParams.get('year');
+    const monthParam = searchParams.get('month');
+
+    const year = yearParam ? Number(yearParam) : NaN;
+    const month = monthParam ? Number(monthParam) : NaN;
+    if (!Number.isFinite(year) || !Number.isFinite(month) || month < 1 || month > 12) {
+      return new Date();
+    }
+    return new Date(year, month - 1, 1);
+  };
+
+  const [currentDate, setCurrentDate] = useState(getDateFromSearchParams);
   const [calendarData, setCalendarData] = useState([]);
   const [selectedDay, setSelectedDay] = useState(null);
   const [monthStats, setMonthStats] = useState(null);
   const [viewMode, setViewMode] = useState('month');
   const [loading, setLoading] = useState(true);
   const [exportFormat, setExportFormat] = useState('csv');
+  const requestAbortRef = useRef(null);
+  const cacheRef = useRef(new Map());
+
+  useEffect(() => {
+    const nextDate = getDateFromSearchParams();
+    if (
+      nextDate.getFullYear() !== currentDate.getFullYear() ||
+      nextDate.getMonth() !== currentDate.getMonth()
+    ) {
+      setCurrentDate(nextDate);
+      setSelectedDay(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   useEffect(() => {
     fetchCalendarData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentDate]);
 
   const fetchCalendarData = async () => {
+    setLoading(true);
     try {
       const token = localStorage.getItem('token');
       const year = currentDate.getFullYear();
       const month = currentDate.getMonth() + 1;
+
+      const cacheKey = `${year}-${String(month).padStart(2, '0')}`;
+      const cached = cacheRef.current.get(cacheKey);
+      if (cached) {
+        setCalendarData(cached.days || []);
+        setMonthStats(cached.monthStats);
+        return;
+      }
+
+      if (requestAbortRef.current) {
+        requestAbortRef.current.abort();
+      }
+      const controller = new AbortController();
+      requestAbortRef.current = controller;
 
       console.log('Fetching calendar for:', year, month);
 
       const response = await fetch(`http://localhost:8080/api/stats/calendar/${year}/${month}`, {
         headers: {
           'Authorization': `Bearer ${token}`
-        }
+        },
+        signal: controller.signal
       });
 
       console.log('Calendar response status:', response.status);
@@ -39,25 +84,38 @@ export default function Calendar() {
         const data = await response.json();
         setCalendarData(data.days || []);
         setMonthStats(data.monthStats);
+        cacheRef.current.set(cacheKey, data);
       } else {
         console.error('Failed to fetch calendar:', response.status);
         const errorText = await response.text();
         console.error('Error response:', errorText);
       }
     } catch (error) {
-      console.error('Error fetching calendar data:', error);
+      if (error?.name !== 'AbortError') {
+        console.error('Error fetching calendar data:', error);
+      }
     } finally {
       setLoading(false);
     }
   };
 
   const changeMonth = (delta) => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + delta, 1));
+    const next = new Date(currentDate.getFullYear(), currentDate.getMonth() + delta, 1);
+    setCurrentDate(next);
+    setSearchParams({
+      year: String(next.getFullYear()),
+      month: String(next.getMonth() + 1).padStart(2, '0')
+    });
     setSelectedDay(null);
   };
 
   const goToToday = () => {
-    setCurrentDate(new Date());
+    const next = new Date();
+    setCurrentDate(next);
+    setSearchParams({
+      year: String(next.getFullYear()),
+      month: String(next.getMonth() + 1).padStart(2, '0')
+    });
     setSelectedDay(null);
   };
 
@@ -77,32 +135,29 @@ export default function Calendar() {
     }
   };
 
-  if (loading) {
-    return (
-      <DashboardLayout>
-        <div className="calendar-page">
-          <div style={{ textAlign: 'center', padding: '40px' }}>Chargement du calendrier...</div>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
   return (
     <DashboardLayout>
       <div className="calendar-page">
         <div className="calendar-container">
-          <CalendarGrid
-            currentDate={currentDate}
-            calendarData={calendarData}
-            selectedDay={selectedDay}
-            onDayClick={handleDayClick}
-            onMonthChange={changeMonth}
-            onTodayClick={goToToday}
-            viewMode={viewMode}
-            onViewModeChange={setViewMode}
-          />
+          <div className="calendar-section">
+            <CalendarGrid
+              currentDate={currentDate}
+              calendarData={calendarData}
+              selectedDay={selectedDay}
+              onDayClick={handleDayClick}
+              onMonthChange={changeMonth}
+              onTodayClick={goToToday}
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+            />
+            {loading && (
+              <div className="calendar-loading-overlay">
+                <div className="calendar-loading-spinner" />
+              </div>
+            )}
+          </div>
 
-          <div className="calendar-sidebar">
+          <div className="calendar-sidebar calendar-section">
             <MonthSummary monthStats={monthStats} />
 
             <div className="export-section">
@@ -121,6 +176,12 @@ export default function Calendar() {
             </div>
 
             <DayDetails selectedDay={selectedDay} onAddSession={handleAddSession} />
+
+            {loading && (
+              <div className="calendar-loading-overlay">
+                <div className="calendar-loading-spinner" />
+              </div>
+            )}
           </div>
         </div>
       </div>

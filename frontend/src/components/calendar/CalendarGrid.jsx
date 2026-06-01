@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import './CalendarGrid.css';
 
 export default function CalendarGrid({
@@ -10,6 +11,16 @@ export default function CalendarGrid({
   viewMode,
   onViewModeChange
 }) {
+  const calendarDataMap = useMemo(() => {
+    const map = new Map();
+    (calendarData || []).forEach(d => {
+      if (d?.date) {
+        map.set(d.date, d);
+      }
+    });
+    return map;
+  }, [calendarData]);
+
   const getDaysInMonth = () => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
@@ -34,7 +45,7 @@ export default function CalendarGrid({
     // Current month days
     for (let i = 1; i <= daysInMonth; i++) {
       const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-      const dayData = calendarData.find(d => d.date === dateStr);
+      const dayData = calendarDataMap.get(dateStr);
       days.push({
         date: i,
         isCurrentMonth: true,
@@ -149,23 +160,25 @@ export default function CalendarGrid({
                   <span className="session-indicator">{day.sessions.length}</span>
                 )}
               </div>
-              {day.isCurrentMonth && day.sessions && day.sessions.length > 0 && (
-                <div className="day-content">
-                  <div className="session-dots">
-                    {day.sessions.slice(0, 4).map((session, idx) => (
-                      <span
-                        key={idx}
-                        className={`session-dot ${session.status === 'ongoing' ? 'ongoing' : 'completed'}`}
-                        title={`${formatTime(session.startTime)} - ${formatTime(session.endTime)}`}
-                      ></span>
-                    ))}
-                    {day.sessions.length > 4 && (
-                      <span className="more-dots">+{day.sessions.length - 4}</span>
-                    )}
-                  </div>
-                  {day.totalDuration && (
-                    <div className="day-total">{day.totalDuration}</div>
+              {day.isCurrentMonth && (
+                <div className={`day-content ${(day.sessions?.length > 0 || day.totalDuration) ? '' : 'empty'}`}>
+                  {day.sessions && day.sessions.length > 0 ? (
+                    <div className="session-dots">
+                      {day.sessions.slice(0, 4).map((session, idx) => (
+                        <span
+                          key={idx}
+                          className={`session-dot ${session.status === 'ongoing' ? 'ongoing' : 'completed'}`}
+                          title={`${formatTime(session.startTime)} - ${formatTime(session.endTime)}`}
+                        ></span>
+                      ))}
+                      {day.sessions.length > 4 && (
+                        <span className="more-dots">+{day.sessions.length - 4}</span>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="session-dots" />
                   )}
+                  <div className="day-total">{day.totalDuration || ''}</div>
                 </div>
               )}
             </div>

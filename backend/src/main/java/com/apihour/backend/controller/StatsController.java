@@ -45,6 +45,22 @@ public class StatsController {
 
   private double calculateHoursForPeriod(String userId, Date startDate, Date endDate) {
     List<TimeEntry> entries = timeEntryRepository.findByUserIdAndStartTimeBetween(userId, startDate, endDate);
+    List<String> entryIds = new ArrayList<>();
+    for (TimeEntry entry : entries) {
+      entryIds.add(entry.getId());
+    }
+
+    Map<String, List<Pause>> pausesByEntryId = new HashMap<>();
+    if (!entryIds.isEmpty()) {
+      List<Pause> allPauses = pauseRepository.findByTimeEntryIdIn(entryIds);
+      for (Pause pause : allPauses) {
+        if (pause.getTimeEntryId() == null) {
+          continue;
+        }
+        pausesByEntryId.computeIfAbsent(pause.getTimeEntryId(), k -> new ArrayList<>()).add(pause);
+      }
+    }
+
     double totalHours = 0.0;
 
     for (TimeEntry entry : entries) {
@@ -52,7 +68,7 @@ public class StatsController {
         long workMillis = entry.getEndTime().getTime() - entry.getStartTime().getTime();
 
         // Subtract pause time
-        List<Pause> pauses = pauseRepository.findByTimeEntryId(entry.getId());
+        List<Pause> pauses = pausesByEntryId.getOrDefault(entry.getId(), Collections.emptyList());
         long pauseMillis = 0;
         for (Pause pause : pauses) {
           if (pause.getPauseEnd() != null) {
@@ -423,6 +439,22 @@ public class StatsController {
       // Get all entries for the period
       List<TimeEntry> allEntries = timeEntryRepository.findByUserIdAndStartTimeBetween(userId, periodStartDate, periodEndDate);
 
+      List<String> timeEntryIds = new ArrayList<>();
+      for (TimeEntry entry : allEntries) {
+        timeEntryIds.add(entry.getId());
+      }
+
+      Map<String, List<Pause>> pausesByEntryId = new HashMap<>();
+      if (!timeEntryIds.isEmpty()) {
+        List<Pause> allPauses = pauseRepository.findByTimeEntryIdIn(timeEntryIds);
+        for (Pause pause : allPauses) {
+          if (pause.getTimeEntryId() == null) {
+            continue;
+          }
+          pausesByEntryId.computeIfAbsent(pause.getTimeEntryId(), k -> new ArrayList<>()).add(pause);
+        }
+      }
+
       // Group entries by day
       Map<String, List<TimeEntry>> entriesByDay = new HashMap<>();
       for (TimeEntry entry : allEntries) {
@@ -469,6 +501,8 @@ public class StatsController {
       List<Map<String, Object>> daysData = new ArrayList<>();
       long totalMonthWorkMillis = 0;
       long totalMonthPauseMillis = 0;
+      double totalVacationHours = 0.0;
+      Map<LocalDate, Double> effectiveHoursByDay = new HashMap<>();
 
       // Iterate through all days in the period
       LocalDate currentDate = periodStart;
@@ -477,6 +511,14 @@ public class StatsController {
         List<TimeEntry> dayEntries = entriesByDay.getOrDefault(dateStr, new ArrayList<>());
 
         String vacationStatus = vacationStatusByDay.get(dateStr);
+
+        double vacationHoursForDay = 0.0;
+        if (vacationStatus != null) {
+          DayOfWeek dow = currentDate.getDayOfWeek();
+          if (dow != DayOfWeek.SATURDAY && dow != DayOfWeek.SUNDAY) {
+            vacationHoursForDay = dailyGoal;
+          }
+        }
 
         if (!dayEntries.isEmpty() || vacationStatus != null) {
           Map<String, Object> dayData = new HashMap<>();
@@ -510,7 +552,7 @@ public class StatsController {
             }
 
             // Calculate pause time
-            List<Pause> pauses = pauseRepository.findByTimeEntryId(entry.getId());
+            List<Pause> pauses = pausesByEntryId.getOrDefault(entry.getId(), Collections.emptyList());
             long pauseMillis = 0;
             for (Pause pause : pauses) {
               if (pause.getPauseEnd() != null) {
@@ -542,6 +584,10 @@ public class StatsController {
           totalMonthWorkMillis += dayWorkMillis;
           totalMonthPauseMillis += dayPauseMillis;
 
+          double workedHoursForDay = netDayWorkMillis / (1000.0 * 60 * 60);
+          effectiveHoursByDay.put(currentDate, workedHoursForDay + vacationHoursForDay);
+          totalVacationHours += vacationHoursForDay;
+
           daysData.add(dayData);
         }
 
@@ -551,9 +597,7 @@ public class StatsController {
       // Calculate month stats
       Map<String, Object> monthStats = new HashMap<>();
       long netMonthWorkMillis = totalMonthWorkMillis - totalMonthPauseMillis;
-      double totalHours = netMonthWorkMillis / (1000.0 * 60 * 60);
-      double vacationHours = calculateVacationHoursForPeriod(userId, periodStartDate, periodEndDate, dailyGoal);
-      totalHours += vacationHours;
+      double totalHours = (netMonthWorkMillis / (1000.0 * 60 * 60)) + totalVacationHours;
 
       int totalHoursInt = (int) totalHours;
       int totalMinutes = (int) ((totalHours - totalHoursInt) * 60);
@@ -587,10 +631,12 @@ public class StatsController {
           weekEnd = periodEnd;
         }
 
-        Date weekStartDate = Date.from(weekStart.atStartOfDay(ZoneId.systemDefault()).toInstant());
-        Date weekEndDate = Date.from(weekEnd.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant());
-
-        double weekHours = calculateHoursForPeriod(userId, weekStartDate, weekEndDate);
+        double weekHours = 0.0;
+        LocalDate d = weekStart;
+        while (!d.isAfter(weekEnd)) {
+          weekHours += effectiveHoursByDay.getOrDefault(d, 0.0);
+          d = d.plusDays(1);
+        }
         Map<String, Double> weekOvertime = calculateOvertimeWithFrenchRates(weekHours, weeklyGoal);
 
         double weekRealOvertime = Math.max(0, weekHours - weeklyGoal);

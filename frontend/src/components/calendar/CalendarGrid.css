@@ -276,6 +276,15 @@
   gap: var(--spacing-xs);
   flex: 1;
   justify-content: space-between;
+  min-height: 34px;
+}
+
+.day-content.empty {
+  opacity: 0.65;
+}
+
+.day-total {
+  min-height: 14px;
 }
 
 .session-dots {
