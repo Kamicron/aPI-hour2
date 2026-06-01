@@ -138,6 +138,13 @@ export default function DayDetail() {
     return `${yy}-${mm}-${dd}`;
   };
 
+  const getCalendarUrlForDate = (dateStr) => {
+    const [y, m] = dateStr.split('-');
+    const year = String(y);
+    const month = String(m).padStart(2, '0');
+    return `/calendar?year=${year}&month=${month}&day=${dateStr}`;
+  };
+
   if (loading) {
     return (
       <DashboardLayout>
@@ -150,7 +157,7 @@ export default function DayDetail() {
     <DashboardLayout>
       <div className="day-detail-container">
         <div className="day-detail-header">
-          <button className="back-button" onClick={() => navigate('/dashboard')}>
+          <button className="back-button" onClick={() => navigate(getCalendarUrlForDate(date))}>
             <span className="material-icons">arrow_back</span>
             Retour
           </button>

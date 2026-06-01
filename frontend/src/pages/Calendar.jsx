@@ -40,8 +40,21 @@ export default function Calendar() {
       setCurrentDate(nextDate);
       setSelectedDay(null);
     }
+
+    const dayParam = searchParams.get('day');
+    if (dayParam) {
+      const [y, m] = dayParam.split('-').map(Number);
+      if (Number.isFinite(y) && Number.isFinite(m) && y === nextDate.getFullYear() && (m - 1) === nextDate.getMonth()) {
+        const dayData = (calendarData || []).find(d => d?.date === dayParam);
+        setSelectedDay({
+          fullDate: dayParam,
+          sessions: dayData?.sessions || [],
+          totalDuration: dayData?.totalDuration
+        });
+      }
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
+  }, [searchParams, calendarData]);
 
   useEffect(() => {
     fetchCalendarData();
@@ -121,6 +134,11 @@ export default function Calendar() {
 
   const handleDayClick = (day) => {
     setSelectedDay(day);
+    setSearchParams({
+      year: String(currentDate.getFullYear()),
+      month: String(currentDate.getMonth() + 1).padStart(2, '0'),
+      day: day.fullDate
+    });
   };
 
   const handleAddSession = () => {
