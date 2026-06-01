@@ -3,9 +3,11 @@ package com.apihour.backend.controller;
 import com.apihour.backend.model.TimeEntry;
 import com.apihour.backend.model.Users;
 import com.apihour.backend.model.Pause;
+import com.apihour.backend.model.Vacation;
 import com.apihour.backend.repository.TimeEntryRepository;
 import com.apihour.backend.repository.UsersRepository;
 import com.apihour.backend.repository.PauseRepository;
+import com.apihour.backend.repository.VacationRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,13 +24,16 @@ public class StatsController {
   private final TimeEntryRepository timeEntryRepository;
   private final UsersRepository usersRepository;
   private final PauseRepository pauseRepository;
+  private final VacationRepository vacationRepository;
 
   public StatsController(TimeEntryRepository timeEntryRepository,
       UsersRepository usersRepository,
-      PauseRepository pauseRepository) {
+      PauseRepository pauseRepository,
+      VacationRepository vacationRepository) {
     this.timeEntryRepository = timeEntryRepository;
     this.usersRepository = usersRepository;
     this.pauseRepository = pauseRepository;
+    this.vacationRepository = vacationRepository;
   }
 
   private String getUserIdFromAuth() {
@@ -61,6 +66,52 @@ public class StatsController {
     }
 
     return totalHours;
+  }
+
+  private double calculateVacationHoursForPeriod(String userId, Date startDate, Date endDate, int dailyGoalHours) {
+    List<Vacation> vacations = vacationRepository.findByUserId(userId);
+    if (vacations == null || vacations.isEmpty()) {
+      return 0.0;
+    }
+
+    LocalDate periodStart = startDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+    LocalDate periodEnd = endDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
+    double vacationHours = 0.0;
+
+    for (Vacation vacation : vacations) {
+      if (vacation.getStartDate() == null || vacation.getEndDate() == null) {
+        continue;
+      }
+
+      Vacation.VacationStatus status = vacation.getStatus();
+      if (status != Vacation.VacationStatus.approved
+          && status != Vacation.VacationStatus.public_holiday
+          && status != Vacation.VacationStatus.sick_leave) {
+        continue;
+      }
+
+      LocalDate vacStart = vacation.getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+      LocalDate vacEnd = vacation.getEndDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
+      if (vacEnd.isBefore(periodStart) || vacStart.isAfter(periodEnd)) {
+        continue;
+      }
+
+      LocalDate start = vacStart.isBefore(periodStart) ? periodStart : vacStart;
+      LocalDate end = vacEnd.isAfter(periodEnd) ? periodEnd : vacEnd;
+
+      LocalDate d = start;
+      while (!d.isAfter(end)) {
+        DayOfWeek dow = d.getDayOfWeek();
+        if (dow != DayOfWeek.SATURDAY && dow != DayOfWeek.SUNDAY) {
+          vacationHours += dailyGoalHours;
+        }
+        d = d.plusDays(1);
+      }
+    }
+
+    return vacationHours;
   }
 
   private Map<String, Double> calculateOvertimeWithFrenchRates(double weekHours, int weeklyGoal) {
@@ -141,6 +192,7 @@ public class StatsController {
       }
 
       int weeklyGoal = user.getWeeklyHoursGoal() != null ? user.getWeeklyHoursGoal() : 40;
+      int dailyGoal = weeklyGoal / 5;
 
       LocalDate today = LocalDate.now();
 
@@ -156,7 +208,7 @@ public class StatsController {
       // If last day is not Sunday, go forward to next Sunday
       LocalDate monthEnd = lastOfMonth.getDayOfWeek() == DayOfWeek.SUNDAY
           ? lastOfMonth
-          : lastOfMonth.with(TemporalAdjusters.next(DayOfWeek.SUNDAY));
+          : lastOfMonth.with(TemporalAdjusters.previous(DayOfWeek.SUNDAY));
 
       // Calculate overtime week by week with French rates (25% for hours 36-43, 50%
       // beyond)
@@ -176,6 +228,7 @@ public class StatsController {
         Date weekEndDate = Date.from(weekEnd.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant());
 
         double weekHours = calculateHoursForPeriod(userId, weekStartDate, weekEndDate);
+        weekHours += calculateVacationHoursForPeriod(userId, weekStartDate, weekEndDate, dailyGoal);
         Map<String, Double> weekOvertime = calculateOvertimeWithFrenchRates(weekHours, weeklyGoal);
 
         double weekRealOvertime = Math.max(0, weekHours - weeklyGoal);
@@ -195,6 +248,7 @@ public class StatsController {
       Date currentWeekEnd = Date.from(currentSunday.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant());
 
       double currentWeekHours = calculateHoursForPeriod(userId, currentWeekStart, currentWeekEnd);
+      currentWeekHours += calculateVacationHoursForPeriod(userId, currentWeekStart, currentWeekEnd, dailyGoal);
       Map<String, Double> currentWeekOvertime = calculateOvertimeWithFrenchRates(currentWeekHours, weeklyGoal);
 
       Map<String, Object> response = new HashMap<>();
@@ -460,6 +514,8 @@ public class StatsController {
       Map<String, Object> monthStats = new HashMap<>();
       long netMonthWorkMillis = totalMonthWorkMillis - totalMonthPauseMillis;
       double totalHours = netMonthWorkMillis / (1000.0 * 60 * 60);
+      double vacationHours = calculateVacationHoursForPeriod(userId, periodStartDate, periodEndDate, dailyGoal);
+      totalHours += vacationHours;
 
       int totalHoursInt = (int) totalHours;
       int totalMinutes = (int) ((totalHours - totalHoursInt) * 60);
