@@ -1,18 +1,20 @@
 .dashboard-layout {
   display: flex;
   min-height: 100vh;
+  height: 100vh;
   background-color: var(--bg-primary);
   position: relative;
+  overflow: hidden;
 }
 
 .dashboard-main {
   flex: 1;
   margin-left: 240px;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: auto 1fr;
   height: 100vh;
   max-height: 100vh;
-  overflow-y: auto;
+  overflow: hidden;
 
   background-color: var(--bg-secondary);
 }
@@ -21,7 +23,8 @@
   flex: 1;
   padding: 0 var(--spacing-2xl);
   background-color: var(--bg-secondary);
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 @media (max-width: 768px) {

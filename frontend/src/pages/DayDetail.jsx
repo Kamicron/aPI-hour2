@@ -128,6 +128,16 @@ export default function DayDetail() {
     return `${days[date.getDay()]} ${day} ${months[date.getMonth()]} ${year}`;
   };
 
+  const getAdjacentDate = (dateStr, deltaDays) => {
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const dt = new Date(y, m - 1, d);
+    dt.setDate(dt.getDate() + deltaDays);
+    const yy = dt.getFullYear();
+    const mm = String(dt.getMonth() + 1).padStart(2, '0');
+    const dd = String(dt.getDate()).padStart(2, '0');
+    return `${yy}-${mm}-${dd}`;
+  };
+
   if (loading) {
     return (
       <DashboardLayout>
@@ -144,115 +154,133 @@ export default function DayDetail() {
             <span className="material-icons">arrow_back</span>
             Retour
           </button>
-          <h1 className="day-detail-title">{formatDate(date)}</h1>
-        </div>
-
-        {dayStats && (
-          <div className="day-stats-card">
-            <h2 className="stats-title">Récapitulatif de la journée</h2>
-            <div className="stats-grid">
-              <div className="stat-item">
-                <span className="stat-label">Début</span>
-                <span className="stat-value">{formatTime(dayStats.startTime)}</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-label">Fin</span>
-                <span className="stat-value">{formatTime(dayStats.endTime)}</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-label">Pause totale</span>
-                <span className="stat-value">{formatDuration(dayStats.totalPause)}</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-label">Temps total</span>
-                <span className="stat-value highlight">{formatDuration(dayStats.totalDuration)}</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-label">Heures sup.</span>
-                <span className={`stat-value ${dayStats.overtime && dayStats.overtime !== '00:00' ? 'overtime-positive' : ''}`}>
-                  {formatDuration(dayStats.overtime)}
-                </span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-label">Statut</span>
-                <span className={`stat-badge ${dayStats.status === 'Validée' ? 'status-validated' : 'status-ongoing'}`}>
-                  {dayStats.status}
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="sessions-section">
-          <div className="sessions-header">
-            <h2 className="sessions-title">Sessions de la journée</h2>
-            <button className="add-session-button" onClick={handleAddSession}>
-              <span className="material-icons">add</span>
-              Ajouter une session
+          <div className="day-detail-title-row">
+            <button
+              className="day-nav-btn"
+              onClick={() => navigate(`/day/${getAdjacentDate(date, -1)}`)}
+              title="Jour précédent"
+            >
+              <span className="material-icons">chevron_left</span>
+            </button>
+            <h1 className="day-detail-title">{formatDate(date)}</h1>
+            <button
+              className="day-nav-btn"
+              onClick={() => navigate(`/day/${getAdjacentDate(date, 1)}`)}
+              title="Jour suivant"
+            >
+              <span className="material-icons">chevron_right</span>
             </button>
           </div>
+        </div>
 
-          {sessions.length === 0 ? (
-            <div className="no-sessions">
-              <span className="material-icons">event_busy</span>
-              <p>Aucune session enregistrée pour cette journée</p>
-            </div>
-          ) : (
-            <div className="sessions-list">
-              {sessions.map((session, index) => (
-                <div key={session.id} className="session-card">
-                  <div className="session-number">Session {index + 1}</div>
-                  <div className="session-details">
-                    <div className="session-time-range">
-                      <div className="time-item">
-                        <span className="material-icons">login</span>
-                        <span className="time-label">Début</span>
-                        <span className="time-value">{formatTime(session.startTime)}</span>
-                      </div>
-                      <div className="time-separator">→</div>
-                      <div className="time-item">
-                        <span className="material-icons">logout</span>
-                        <span className="time-label">Fin</span>
-                        <span className="time-value">{formatTime(session.endTime)}</span>
-                      </div>
-                    </div>
-                    <div className="session-stats">
-                      <div className="session-stat">
-                        <span className="material-icons">pause_circle</span>
-                        <span className="stat-text">
-                          <span className="stat-label-small">Pause</span>
-                          <span className="stat-value-small">{formatDuration(session.pauseDuration)}</span>
-                        </span>
-                      </div>
-                      <div className="session-stat">
-                        <span className="material-icons">schedule</span>
-                        <span className="stat-text">
-                          <span className="stat-label-small">Durée</span>
-                          <span className="stat-value-small">{formatDuration(session.duration)}</span>
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="session-actions">
-                    <button
-                      className="action-btn edit-btn"
-                      onClick={() => handleEditSession(session)}
-                      title="Modifier"
-                    >
-                      <span className="material-icons">edit</span>
-                    </button>
-                    <button
-                      className="action-btn delete-btn"
-                      onClick={() => handleDeleteClick(session)}
-                      title="Supprimer"
-                    >
-                      <span className="material-icons">delete</span>
-                    </button>
-                  </div>
+        <div className="day-detail-scroll">
+          {dayStats && (
+            <div className="day-stats-card">
+              <h2 className="stats-title">Récapitulatif de la journée</h2>
+              <div className="stats-grid">
+                <div className="stat-item">
+                  <span className="stat-label">Début</span>
+                  <span className="stat-value">{formatTime(dayStats.startTime)}</span>
                 </div>
-              ))}
+                <div className="stat-item">
+                  <span className="stat-label">Fin</span>
+                  <span className="stat-value">{formatTime(dayStats.endTime)}</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-label">Pause totale</span>
+                  <span className="stat-value">{formatDuration(dayStats.totalPause)}</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-label">Temps total</span>
+                  <span className="stat-value highlight">{formatDuration(dayStats.totalDuration)}</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-label">Heures sup.</span>
+                  <span className={`stat-value ${dayStats.overtime && dayStats.overtime !== '00:00' ? 'overtime-positive' : ''}`}>
+                    {formatDuration(dayStats.overtime)}
+                  </span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-label">Statut</span>
+                  <span className={`stat-badge ${dayStats.status === 'Validée' ? 'status-validated' : 'status-ongoing'}`}>
+                    {dayStats.status}
+                  </span>
+                </div>
+              </div>
             </div>
           )}
+
+          <div className="sessions-section">
+            <div className="sessions-header">
+              <h2 className="sessions-title">Sessions de la journée</h2>
+              <button className="add-session-button" onClick={handleAddSession}>
+                <span className="material-icons">add</span>
+                Ajouter une session
+              </button>
+            </div>
+
+            {sessions.length === 0 ? (
+              <div className="no-sessions">
+                <span className="material-icons">event_busy</span>
+                <p>Aucune session enregistrée pour cette journée</p>
+              </div>
+            ) : (
+              <div className="sessions-list">
+                {sessions.map((session, index) => (
+                  <div key={session.id} className="session-card">
+                    <div className="session-number">Session {index + 1}</div>
+                    <div className="session-details">
+                      <div className="session-time-range">
+                        <div className="time-item">
+                          <span className="material-icons">login</span>
+                          <span className="time-label">Début</span>
+                          <span className="time-value">{formatTime(session.startTime)}</span>
+                        </div>
+                        <div className="time-separator">→</div>
+                        <div className="time-item">
+                          <span className="material-icons">logout</span>
+                          <span className="time-label">Fin</span>
+                          <span className="time-value">{formatTime(session.endTime)}</span>
+                        </div>
+                      </div>
+                      <div className="session-stats">
+                        <div className="session-stat">
+                          <span className="material-icons">pause_circle</span>
+                          <span className="stat-text">
+                            <span className="stat-label-small">Pause</span>
+                            <span className="stat-value-small">{formatDuration(session.pauseDuration)}</span>
+                          </span>
+                        </div>
+                        <div className="session-stat">
+                          <span className="material-icons">schedule</span>
+                          <span className="stat-text">
+                            <span className="stat-label-small">Durée</span>
+                            <span className="stat-value-small">{formatDuration(session.duration)}</span>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="session-actions">
+                      <button
+                        className="action-btn edit-btn"
+                        onClick={() => handleEditSession(session)}
+                        title="Modifier"
+                      >
+                        <span className="material-icons">edit</span>
+                      </button>
+                      <button
+                        className="action-btn delete-btn"
+                        onClick={() => handleDeleteClick(session)}
+                        title="Supprimer"
+                      >
+                        <span className="material-icons">delete</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <SessionModal
