@@ -33,6 +33,28 @@ const calculateOvertimeBreakdown = (monthStats) => {
   };
 };
 
+const getVacationLabel = (vacationStatus) => {
+  if (!vacationStatus) return '';
+  if (vacationStatus === 'public_holiday') return 'Férié';
+  if (vacationStatus === 'sick_leave') return 'Maladie';
+  if (vacationStatus === 'approved') return 'Congé';
+  return vacationStatus;
+};
+
+const getVacationCounts = (calendarData) => {
+  const daysWithVacations = (calendarData || []).filter(day => day?.vacationStatus);
+  const countsByStatus = {};
+  daysWithVacations.forEach(day => {
+    const status = day.vacationStatus;
+    countsByStatus[status] = (countsByStatus[status] || 0) + 1;
+  });
+  return {
+    total: daysWithVacations.length,
+    byStatus: countsByStatus,
+    days: daysWithVacations
+  };
+};
+
 export const exportToCSV = (calendarData, monthStats, currentDate) => {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth() + 1;
@@ -80,6 +102,28 @@ export const exportToCSV = (calendarData, monthStats, currentDate) => {
       ]);
     });
   });
+
+  const daysWithVacations = calendarData.filter(day => day.vacationStatus);
+  const vacationInfo = getVacationCounts(calendarData);
+  if (vacationInfo.total > 0) {
+    csvRows.push([]);
+    csvRows.push(['Congés / Absences']);
+
+    csvRows.push(['Nombre de jours posés (dans la période)', String(vacationInfo.total)]);
+    Object.entries(vacationInfo.byStatus).forEach(([status, count]) => {
+      csvRows.push([`- ${getVacationLabel(status)}`, String(count)]);
+    });
+    csvRows.push(['']);
+
+    csvRows.push(['Date', 'Type']);
+
+    vacationInfo.days.forEach(day => {
+      csvRows.push([
+        day.date,
+        getVacationLabel(day.vacationStatus)
+      ]);
+    });
+  }
 
   const csvContent = csvRows.map(row =>
     row.map(cell => {
@@ -200,9 +244,44 @@ export const exportToPDF = (calendarData, monthStats, currentDate) => {
       margin: { left: 14 },
       styles: { fontSize: 9 }
     });
+    yPosition = doc.lastAutoTable.finalY + 10;
   } else {
     doc.setFontSize(10);
     doc.text('Aucune session pour ce mois', 14, yPosition + 10);
+    yPosition = yPosition + 20;
+  }
+
+  const vacationInfo = getVacationCounts(calendarData);
+  if (vacationInfo.total > 0) {
+    doc.setFontSize(14);
+    doc.text('Congés / Absences', 14, yPosition);
+    yPosition += 5;
+
+    doc.setFontSize(10);
+    doc.text(`Nombre de jours posés (dans la période) : ${vacationInfo.total}`, 14, yPosition);
+    yPosition += 6;
+
+    Object.entries(vacationInfo.byStatus).forEach(([status, count]) => {
+      doc.text(`- ${getVacationLabel(status)} : ${count}`, 14, yPosition);
+      yPosition += 5;
+    });
+
+    yPosition += 3;
+
+    const vacationsData = vacationInfo.days.map(day => ([
+      day.date,
+      getVacationLabel(day.vacationStatus)
+    ]));
+
+    autoTable(doc, {
+      startY: yPosition,
+      head: [['Date', 'Type']],
+      body: vacationsData,
+      theme: 'striped',
+      headStyles: { fillColor: [99, 102, 241] },
+      margin: { left: 14 },
+      styles: { fontSize: 9 }
+    });
   }
 
   doc.save(`calendrier_${year}_${String(month).padStart(2, '0')}.pdf`);
