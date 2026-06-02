@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import './WeeklyGoal.css';
+import axiosInstance from '../../api/axios';
 
 export default function WeeklyGoal() {
   const [stats, setStats] = useState({
@@ -15,21 +16,13 @@ export default function WeeklyGoal() {
 
   const fetchWeeklyStats = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8080/api/stats/weekly-hours', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      const response = await axiosInstance.get('/stats/weekly-hours');
+      const data = response.data;
+      setStats({
+        weeklyGoal: data.weeklyGoal,
+        hoursWorked: data.hoursWorked,
+        percentage: data.percentage
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        setStats({
-          weeklyGoal: data.weeklyGoal,
-          hoursWorked: data.hoursWorked,
-          percentage: data.percentage
-        });
-      }
     } catch (error) {
       console.error('Error fetching weekly stats:', error);
     } finally {

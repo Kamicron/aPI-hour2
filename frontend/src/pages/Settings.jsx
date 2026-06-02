@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import DashboardLayout from '../components/dashboard/DashboardLayout';
 import './Settings.css';
+import axiosInstance from '../api/axios';
 
 export default function Settings() {
   const { user, login } = useAuth();
@@ -27,37 +28,27 @@ export default function Settings() {
     }
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8080/api/users/${user.id}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const response = await axiosInstance.get(`/users/${user.id}`);
+      const userData = response.data;
+      console.log('User data from backend:', userData);
 
-      if (response.ok) {
-        const userData = await response.json();
-        console.log('User data from backend:', userData);
+      // workingDays est une String "1,2,3,4,5" dans le backend
+      // On le convertit en tableau [1,2,3,4,5]
+      const workingDaysArray = userData.workingDays
+        ? userData.workingDays.split(',').map(d => parseInt(d.trim())).filter(d => !isNaN(d))
+        : [1, 2, 3, 4, 5];
 
-        // workingDays est une String "1,2,3,4,5" dans le backend
-        // On le convertit en tableau [1,2,3,4,5]
-        const workingDaysArray = userData.workingDays
-          ? userData.workingDays.split(',').map(d => parseInt(d.trim())).filter(d => !isNaN(d))
-          : [1, 2, 3, 4, 5];
+      const formattedData = {
+        name: userData.name || '',
+        email: userData.email || '',
+        weeklyHoursGoal: userData.weeklyHoursGoal || 40,
+        workingDays: workingDaysArray
+      };
 
-        const formattedData = {
-          name: userData.name || '',
-          email: userData.email || '',
-          weeklyHoursGoal: userData.weeklyHoursGoal || 40,
-          workingDays: workingDaysArray
-        };
-
-        console.log('Formatted form data:', formattedData);
-        login(token, userData);
-        setFormData(formattedData);
-      } else {
-        console.error('Failed to fetch user data:', response.status);
-      }
+      console.log('Formatted form data:', formattedData);
+      const currentToken = localStorage.getItem('token');
+      login(currentToken, userData);
+      setFormData(formattedData);
     } catch (error) {
       console.error('Error fetching user data:', error);
     }
@@ -106,28 +97,14 @@ export default function Settings() {
     console.log('Updating profile with:', { email: formData.email, userId: user.id });
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8080/api/users/${user.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email
-        })
+      await axiosInstance.put(`/users/${user.id}`, {
+        name: formData.name,
+        email: formData.email
       });
 
-      if (response.ok) {
-        await fetchUserData();
-        setMessage({ type: 'success', text: 'Profil mis à jour avec succès' });
-        setTimeout(() => setMessage({ type: '', text: '' }), 3000);
-      } else {
-        const errorText = await response.text();
-        console.error('Update failed:', errorText);
-        throw new Error('Erreur lors de la mise à jour');
-      }
+      await fetchUserData();
+      setMessage({ type: 'success', text: 'Profil mis à jour avec succès' });
+      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
     } catch (error) {
       console.error('Profile update error:', error);
       setMessage({ type: 'error', text: 'Erreur lors de la mise à jour du profil' });
@@ -149,25 +126,12 @@ export default function Settings() {
     setMessage({ type: '', text: '' });
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8080/api/auth/change-password-request', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          email: user.email,
-          oldPassword: passwordData.oldPassword
-        })
+      await axiosInstance.post('/auth/change-password-request', {
+        email: user.email,
+        oldPassword: passwordData.oldPassword
       });
-
-      if (response.ok) {
-        setMessage({ type: 'success', text: 'Un email de réinitialisation a été envoyé à votre adresse.' });
-        setPasswordData({ oldPassword: '' });
-      } else {
-        throw new Error('Ancien mot de passe incorrect');
-      }
+      setMessage({ type: 'success', text: 'Un email de réinitialisation a été envoyé à votre adresse.' });
+      setPasswordData({ oldPassword: '' });
     } catch (error) {
       setMessage({ type: 'error', text: 'Ancien mot de passe incorrect' });
     } finally {
@@ -189,27 +153,13 @@ export default function Settings() {
     console.log('Updating goal with:', formData.weeklyHoursGoal, 'userId:', user.id);
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8080/api/users/${user.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          weeklyHoursGoal: formData.weeklyHoursGoal
-        })
+      await axiosInstance.put(`/users/${user.id}`, {
+        weeklyHoursGoal: formData.weeklyHoursGoal
       });
 
-      if (response.ok) {
-        await fetchUserData();
-        setMessage({ type: 'success', text: 'Objectif hebdomadaire mis à jour' });
-        setTimeout(() => setMessage({ type: '', text: '' }), 3000);
-      } else {
-        const errorText = await response.text();
-        console.error('Update failed:', errorText);
-        throw new Error('Erreur lors de la mise à jour');
-      }
+      await fetchUserData();
+      setMessage({ type: 'success', text: 'Objectif hebdomadaire mis à jour' });
+      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
     } catch (error) {
       console.error('Goal update error:', error);
       setMessage({ type: 'error', text: 'Erreur lors de la mise à jour' });
@@ -233,27 +183,13 @@ export default function Settings() {
     console.log('Updating working days with:', formData.workingDays.length, 'userId:', user.id);
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8080/api/users/${user.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          workingDays: formData.workingDays.join(',')
-        })
+      await axiosInstance.put(`/users/${user.id}`, {
+        workingDays: formData.workingDays.join(',')
       });
 
-      if (response.ok) {
-        await fetchUserData();
-        setMessage({ type: 'success', text: 'Jours travaillés mis à jour' });
-        setTimeout(() => setMessage({ type: '', text: '' }), 3000);
-      } else {
-        const errorText = await response.text();
-        console.error('Update failed:', errorText);
-        throw new Error('Erreur lors de la mise à jour');
-      }
+      await fetchUserData();
+      setMessage({ type: 'success', text: 'Jours travaillés mis à jour' });
+      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
     } catch (error) {
       console.error('Working days update error:', error);
       setMessage({ type: 'error', text: 'Erreur lors de la mise à jour' });

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import './OvertimeHours.css';
+import axiosInstance from '../../api/axios';
 
 export default function OvertimeHours() {
   const [stats, setStats] = useState({
@@ -14,20 +15,12 @@ export default function OvertimeHours() {
 
   const fetchOvertimeStats = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8080/api/stats/overtime', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      const response = await axiosInstance.get('/stats/overtime');
+      const data = response.data;
+      setStats({
+        monthlyOvertime: data.monthlyOvertime,
+        weeklyOvertime: data.weeklyOvertime
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        setStats({
-          monthlyOvertime: data.monthlyOvertime,
-          weeklyOvertime: data.weeklyOvertime
-        });
-      }
     } catch (error) {
       console.error('Error fetching overtime stats:', error);
     } finally {

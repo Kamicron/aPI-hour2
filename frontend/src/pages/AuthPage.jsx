@@ -8,6 +8,7 @@ import ForgotPasswordModal from '../components/auth/ForgotPasswordModal';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { authService } from '../services/authService';
+import axiosInstance from '../api/axios';
 import './AuthPage.css';
 
 export default function AuthPage() {
@@ -45,22 +46,18 @@ export default function AuthPage() {
       }
 
       try {
-        const userResponse = await fetch('http://localhost:8080/api/users', {
+        const userResponse = await axiosInstance.get('/users', {
           headers: {
-            'Authorization': `Bearer ${response.token}`
+            Authorization: `Bearer ${response.token}`
           }
         });
 
-        if (userResponse.ok) {
-          const users = await userResponse.json();
-          const currentUser = users.find(u => u.email.toLowerCase() === data.email.toLowerCase());
+        const users = userResponse.data;
+        const currentUser = users.find(u => u.email.toLowerCase() === data.email.toLowerCase());
 
-          if (currentUser) {
-            console.log('User data loaded:', currentUser);
-            login(response.token, currentUser, response.refreshToken);
-          } else {
-            login(response.token, { email: data.email }, response.refreshToken);
-          }
+        if (currentUser) {
+          console.log('User data loaded:', currentUser);
+          login(response.token, currentUser, response.refreshToken);
         } else {
           login(response.token, { email: data.email }, response.refreshToken);
         }

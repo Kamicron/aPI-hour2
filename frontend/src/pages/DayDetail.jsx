@@ -4,6 +4,7 @@ import DashboardLayout from '../components/dashboard/DashboardLayout';
 import SessionModal from '../components/modals/SessionModal';
 import DeleteConfirmModal from '../components/modals/DeleteConfirmModal';
 import './DayDetail.css';
+import axiosInstance from '../api/axios';
 
 export default function DayDetail() {
   const { date } = useParams();
@@ -22,20 +23,10 @@ export default function DayDetail() {
 
   const fetchDayData = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8080/api/stats/day-detail/${date}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setSessions(data.sessions || []);
-        setDayStats(data.stats);
-      } else {
-        console.error('Failed to fetch day data');
-      }
+      const response = await axiosInstance.get(`/stats/day-detail/${date}`);
+      const data = response.data;
+      setSessions(data.sessions || []);
+      setDayStats(data.stats);
     } catch (error) {
       console.error('Error fetching day data:', error);
     } finally {
@@ -55,28 +46,15 @@ export default function DayDetail() {
 
   const handleSaveSession = async (formData) => {
     try {
-      const token = localStorage.getItem('token');
-      const url = editingSession
-        ? `http://localhost:8080/api/time-entries/${editingSession.id}`
-        : 'http://localhost:8080/api/time-entries';
-      const method = editingSession ? 'PUT' : 'POST';
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      });
-
-      if (response.ok) {
-        setIsModalOpen(false);
-        setEditingSession(null);
-        fetchDayData();
+      if (editingSession) {
+        await axiosInstance.put(`/time-entries/${editingSession.id}`, formData);
       } else {
-        console.error('Failed to save session');
+        await axiosInstance.post('/time-entries', formData);
       }
+
+      setIsModalOpen(false);
+      setEditingSession(null);
+      fetchDayData();
     } catch (error) {
       console.error('Error saving session:', error);
     }
@@ -91,19 +69,10 @@ export default function DayDetail() {
     if (!sessionToDelete) return;
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8080/api/time-entries/${sessionToDelete.id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        setDeleteModalOpen(false);
-        setSessionToDelete(null);
-        fetchDayData();
-      }
+      await axiosInstance.delete(`/time-entries/${sessionToDelete.id}`);
+      setDeleteModalOpen(false);
+      setSessionToDelete(null);
+      fetchDayData();
     } catch (error) {
       console.error('Error deleting session:', error);
     }

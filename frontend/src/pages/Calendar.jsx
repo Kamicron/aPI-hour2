@@ -8,6 +8,7 @@ import SessionModal from '../components/modals/SessionModal';
 import DeleteConfirmModal from '../components/modals/DeleteConfirmModal';
 import { exportToCSV, exportToPDF } from '../utils/exportUtils';
 import './Calendar.css';
+import axiosInstance from '../api/axios';
 
 export default function Calendar() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -34,7 +35,6 @@ export default function Calendar() {
   const [editingSession, setEditingSession] = useState(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [sessionToDelete, setSessionToDelete] = useState(null);
-  const requestAbortRef = useRef(null);
   const cacheRef = useRef(new Map());
 
   useEffect(() => {
@@ -72,7 +72,6 @@ export default function Calendar() {
   const fetchCalendarData = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
       const year = currentDate.getFullYear();
       const month = currentDate.getMonth() + 1;
 
@@ -84,37 +83,15 @@ export default function Calendar() {
         return;
       }
 
-      if (requestAbortRef.current) {
-        requestAbortRef.current.abort();
-      }
-      const controller = new AbortController();
-      requestAbortRef.current = controller;
-
       console.log('Fetching calendar for:', year, month);
 
-      const response = await fetch(`http://localhost:8080/api/stats/calendar/${year}/${month}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        signal: controller.signal
-      });
-
-      console.log('Calendar response status:', response.status);
-
-      if (response.ok) {
-        const data = await response.json();
-        setCalendarData(data.days || []);
-        setMonthStats(data.monthStats);
-        cacheRef.current.set(cacheKey, data);
-      } else {
-        console.error('Failed to fetch calendar:', response.status);
-        const errorText = await response.text();
-        console.error('Error response:', errorText);
-      }
+      const response = await axiosInstance.get(`/stats/calendar/${year}/${month}`);
+      const data = response.data;
+      setCalendarData(data.days || []);
+      setMonthStats(data.monthStats);
+      cacheRef.current.set(cacheKey, data);
     } catch (error) {
-      if (error?.name !== 'AbortError') {
-        console.error('Error fetching calendar data:', error);
-      }
+      console.error('Error fetching calendar data:', error);
     } finally {
       setLoading(false);
     }
@@ -172,25 +149,8 @@ export default function Calendar() {
   const handleEditSession = async (session) => {
     if (!session?.id) return;
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8080/api/time-entries/${session.id}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) {
-        console.error('Failed to fetch time entry details');
-        setEditingSession({
-          ...session,
-          pauses: session?.pauses || [],
-          comment: session?.comment || ''
-        });
-        setIsModalOpen(true);
-        return;
-      }
-
-      const data = await response.json();
+      const response = await axiosInstance.get(`/time-entries/${session.id}`);
+      const data = response.data;
       const timeEntry = data?.timeEntry;
       const pauses = data?.pauses || [];
 
@@ -214,29 +174,15 @@ export default function Calendar() {
   const handleSaveSession = async (formData) => {
     if (!selectedDay?.fullDate) return;
     try {
-      const token = localStorage.getItem('token');
-      const url = editingSession
-        ? `http://localhost:8080/api/time-entries/${editingSession.id}`
-        : 'http://localhost:8080/api/time-entries';
-      const method = editingSession ? 'PUT' : 'POST';
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      });
-
-      if (response.ok) {
-        setIsModalOpen(false);
-        setEditingSession(null);
-        refreshCalendarData();
+      if (editingSession) {
+        await axiosInstance.put(`/time-entries/${editingSession.id}`, formData);
       } else {
-        const errorText = await response.text();
-        console.error('Failed to save session:', response.status, errorText);
+        await axiosInstance.post('/time-entries', formData);
       }
+
+      setIsModalOpen(false);
+      setEditingSession(null);
+      refreshCalendarData();
     } catch (error) {
       console.error('Error saving session:', error);
     }
@@ -251,22 +197,10 @@ export default function Calendar() {
     if (!sessionToDelete?.id) return;
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8080/api/time-entries/${sessionToDelete.id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        setDeleteModalOpen(false);
-        setSessionToDelete(null);
-        refreshCalendarData();
-      } else {
-        const errorText = await response.text();
-        console.error('Failed to delete session:', response.status, errorText);
-      }
+      await axiosInstance.delete(`/time-entries/${sessionToDelete.id}`);
+      setDeleteModalOpen(false);
+      setSessionToDelete(null);
+      refreshCalendarData();
     } catch (error) {
       console.error('Error deleting session:', error);
     }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './WeekHistory.css';
+import axiosInstance from '../../api/axios';
 
 export default function WeekHistory() {
   const [weekData, setWeekData] = useState([]);
@@ -19,28 +20,16 @@ export default function WeekHistory() {
 
   const fetchWeekHistory = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8080/api/stats/week-history', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Week history data received:', data);
-        console.log('Data is array:', Array.isArray(data));
-        console.log('Data length:', data.length);
-        if (data.length > 0) {
-          console.log('First item:', data[0]);
-        }
-        setWeekData(data);
-        console.log('State updated with data');
-      } else {
-        console.error('Failed to fetch week history:', response.status, response.statusText);
-        const errorText = await response.text();
-        console.error('Error response:', errorText);
+      const response = await axiosInstance.get('/stats/week-history');
+      const data = response.data;
+      console.log('Week history data received:', data);
+      console.log('Data is array:', Array.isArray(data));
+      console.log('Data length:', data.length);
+      if (data.length > 0) {
+        console.log('First item:', data[0]);
       }
+      setWeekData(data);
+      console.log('State updated with data');
     } catch (error) {
       console.error('Error fetching week history:', error);
     } finally {
