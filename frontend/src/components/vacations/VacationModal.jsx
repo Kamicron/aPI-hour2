@@ -104,20 +104,6 @@ const VacationModal = ({ isOpen, onClose, onSave, vacation, mode = 'create' }) =
           </div>
 
           <div className="form-section">
-            <label className="form-label">Demi-journée</label>
-            <div className="radio-group">
-              <label className="radio-label">
-                <input type="radio" name="halfDay" value="morning" />
-                <span>Matin</span>
-              </label>
-              <label className="radio-label">
-                <input type="radio" name="halfDay" value="afternoon" />
-                <span>Après-midi</span>
-              </label>
-            </div>
-          </div>
-
-          <div className="form-section">
             <label className="form-label">Commentaire</label>
             <textarea
               name="reason"

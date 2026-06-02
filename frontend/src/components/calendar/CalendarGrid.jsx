@@ -106,7 +106,7 @@ export default function CalendarGrid({
     if (!vacationStatus) return '';
     if (vacationStatus === 'public_holiday') return 'Férié';
     if (vacationStatus === 'sick_leave') return 'Maladie';
-    if (vacationStatus === 'approved') return 'Congé';
+    if (vacationStatus === 'approved') return 'Validé';
     return vacationStatus;
   };
 

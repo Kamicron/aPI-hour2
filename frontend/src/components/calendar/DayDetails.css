@@ -93,7 +93,7 @@
 .session-comment {
   margin-top: 6px;
   padding: 6px 10px;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   font-size: var(--font-size-xs);
@@ -166,7 +166,7 @@
 }
 
 .session-menu-item.danger:hover {
-  background: rgba(239, 68, 68, 0.1);
+  background: var(--bg-tertiary);
 }
 
 .no-sessions-message {

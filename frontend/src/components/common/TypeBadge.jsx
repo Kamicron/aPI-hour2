@@ -4,9 +4,9 @@ import './TypeBadge.css';
 const TypeBadge = ({ type }) => {
   const getTypeConfig = (type) => {
     const configs = {
-      pending: { label: 'Congé payé', color: '#3b82f6', icon: '●' },
-      approved: { label: 'Congé payé', color: '#3b82f6', icon: '●' },
-      rejected: { label: 'Congé payé', color: '#3b82f6', icon: '●' },
+      pending: { label: 'En attente', color: '#3b82f6', icon: '●' },
+      approved: { label: 'Validé', color: '#3b82f6', icon: '●' },
+      rejected: { label: 'Décliné', color: '#3b82f6', icon: '●' },
       public_holiday: { label: 'Jour férié', color: '#10b981', icon: '●' },
       sick_leave: { label: 'Maladie', color: '#f59e0b', icon: '●' }
     };

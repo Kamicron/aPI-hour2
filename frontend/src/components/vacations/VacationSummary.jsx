@@ -20,34 +20,34 @@ export default function VacationSummary({ stats }) {
           
           <div className="breakdown-item">
             <div className="breakdown-left">
-              <span className="breakdown-dot" style={{ backgroundColor: '#3b82f6' }}></span>
+              <span className="breakdown-dot" style={{ backgroundColor: 'var(--color-warning)' }}></span>
               <span className="breakdown-label">En attente</span>
             </div>
-            <span className="breakdown-value">{stats.congePaye} jours</span>
+            <span className="breakdown-value">{stats.pendingDays} jours</span>
           </div>
 
           <div className="breakdown-item">
             <div className="breakdown-left">
-              <span className="breakdown-dot" style={{ backgroundColor: '#8b5cf6' }}></span>
+              <span className="breakdown-dot" style={{ backgroundColor: 'var(--color-success)' }}></span>
               <span className="breakdown-label">Validé</span>
             </div>
-            <span className="breakdown-value">{stats.rtt} jour</span>
+            <span className="breakdown-value">{stats.approvedDays} jours</span>
           </div>
 
           <div className="breakdown-item">
             <div className="breakdown-left">
-              <span className="breakdown-dot" style={{ backgroundColor: '#f59e0b' }}></span>
+              <span className="breakdown-dot" style={{ backgroundColor: 'var(--color-info)' }}></span>
               <span className="breakdown-label">Maladie</span>
             </div>
-            <span className="breakdown-value">{stats.maladie} jour</span>
+            <span className="breakdown-value">{stats.sickLeaveDays} jours</span>
           </div>
 
           <div className="breakdown-item">
             <div className="breakdown-left">
-              <span className="breakdown-dot" style={{ backgroundColor: '#10b981' }}></span>
+              <span className="breakdown-dot" style={{ backgroundColor: 'var(--color-secondary)' }}></span>
               <span className="breakdown-label">Jour férié</span>
             </div>
-            <span className="breakdown-value">{stats.jourFerie} jours</span>
+            <span className="breakdown-value">{stats.publicHolidayDays} jours</span>
           </div>
         </div>
       </div>

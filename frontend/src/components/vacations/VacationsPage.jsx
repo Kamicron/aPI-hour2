@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import vacationService from '../../services/vacationService';
 import VacationSummary from './VacationSummary';
-import VacationForm from './VacationForm';
+import VacationModal from './VacationModal';
+import DeleteConfirmModal from '../modals/DeleteConfirmModal';
 import './VacationsPage.css';
 
 export default function VacationsPage() {
@@ -12,9 +13,15 @@ export default function VacationsPage() {
   const [loading, setLoading] = useState(true);
   const [showSidebar, setShowSidebar] = useState(true);
   const [selectedVacation, setSelectedVacation] = useState(null);
+  const [isVacationModalOpen, setIsVacationModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [vacationToDelete, setVacationToDelete] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [activeFilters, setActiveFilters] = useState([]);
   const [selectedVacations, setSelectedVacations] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   useEffect(() => {
     if (user) {
@@ -24,7 +31,11 @@ export default function VacationsPage() {
 
   useEffect(() => {
     filterVacations();
-  }, [vacations, searchTerm, activeFilters]);
+  }, [vacations, searchTerm, activeFilters, statusFilter]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, activeFilters, statusFilter]);
 
   const loadVacations = async () => {
     try {
@@ -47,11 +58,19 @@ export default function VacationsPage() {
       );
     }
 
+    if (statusFilter) {
+      filtered = filtered.filter(v => v.status === statusFilter);
+    }
+
     activeFilters.forEach(filter => {
-      if (filter.type === 'status') {
-        filtered = filtered.filter(v => v.status === filter.value);
-      } else if (filter.type === 'period') {
-        filtered = filtered.filter(v => v.status === filter.value);
+      if (filter.type === 'period') {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (filter.value === 'upcoming') {
+          filtered = filtered.filter(v => new Date(v.startDate) >= today);
+        } else if (filter.value === 'past') {
+          filtered = filtered.filter(v => new Date(v.endDate) < today);
+        }
       }
     });
 
@@ -73,16 +92,28 @@ export default function VacationsPage() {
   const clearFilters = () => {
     setActiveFilters([]);
     setSearchTerm('');
+    setStatusFilter('');
+  };
+
+  const totalPages = Math.max(1, Math.ceil(filteredVacations.length / rowsPerPage));
+  const safePage = Math.min(currentPage, totalPages);
+  const startIndex = (safePage - 1) * rowsPerPage;
+  const endIndex = startIndex + rowsPerPage;
+  const paginatedVacations = filteredVacations.slice(startIndex, endIndex);
+
+  const goToPage = (page) => {
+    const next = Math.min(Math.max(1, page), totalPages);
+    setCurrentPage(next);
   };
 
   const handleAddVacation = () => {
     setSelectedVacation(null);
-    setShowSidebar(true);
+    setIsVacationModalOpen(true);
   };
 
   const handleEditVacation = (vacation) => {
     setSelectedVacation(vacation);
-    setShowSidebar(true);
+    setIsVacationModalOpen(true);
   };
 
   const handleSaveVacation = async (formData) => {
@@ -91,7 +122,7 @@ export default function VacationsPage() {
         userId: user.id,
         startDate: formData.startDate,
         endDate: formData.endDate,
-        status: formData.type || 'pending',
+        status: formData.status || formData.type || 'pending',
         reason: formData.reason || ''
       };
 
@@ -102,6 +133,7 @@ export default function VacationsPage() {
       }
 
       setSelectedVacation(null);
+      setIsVacationModalOpen(false);
       loadVacations();
     } catch (error) {
       console.error('Erreur lors de la sauvegarde:', error);
@@ -109,14 +141,20 @@ export default function VacationsPage() {
     }
   };
 
-  const handleDeleteVacation = async (id) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette absence ?')) {
-      try {
-        await vacationService.deleteVacation(id);
-        loadVacations();
-      } catch (error) {
-        console.error('Erreur lors de la suppression:', error);
-      }
+  const handleDeleteVacation = (vacation) => {
+    setVacationToDelete(vacation);
+    setDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!vacationToDelete?.id) return;
+    try {
+      await vacationService.deleteVacation(vacationToDelete.id);
+      setDeleteModalOpen(false);
+      setVacationToDelete(null);
+      loadVacations();
+    } catch (error) {
+      console.error('Erreur lors de la suppression:', error);
     }
   };
 
@@ -167,12 +205,32 @@ export default function VacationsPage() {
         return acc + days;
       }, 0);
 
-    const congePaye = vacations.filter(v => v.status === 'pending' || v.status === 'approved').length;
-    const rtt = vacations.filter(v => v.status === 'approved' && v.reason?.toLowerCase().includes('rtt')).length;
-    const maladie = vacations.filter(v => v.status === 'sick_leave').length;
-    const jourFerie = vacations.filter(v => v.status === 'public_holiday').length;
+    const sumDaysByStatus = (status) => {
+      return vacations
+        .filter(v => v.status === status)
+        .reduce((acc, v) => {
+          const start = new Date(v.startDate);
+          const end = new Date(v.endDate);
+          const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+          return acc + days;
+        }, 0);
+    };
 
-    return { totalDays, upcomingDays, congePaye, rtt, maladie, jourFerie };
+    const pendingDays = sumDaysByStatus('pending');
+    const approvedDays = sumDaysByStatus('approved');
+    const rejectedDays = sumDaysByStatus('rejected');
+    const sickLeaveDays = sumDaysByStatus('sick_leave');
+    const publicHolidayDays = sumDaysByStatus('public_holiday');
+
+    return {
+      totalDays,
+      upcomingDays,
+      pendingDays,
+      approvedDays,
+      rejectedDays,
+      sickLeaveDays,
+      publicHolidayDays
+    };
   };
 
   const stats = getStats();
@@ -202,12 +260,15 @@ export default function VacationsPage() {
               />
             </div>
 
-            <select className="filter-select" onChange={(e) => {
-              if (e.target.value) addFilter('type', e.target.value, e.target.options[e.target.selectedIndex].text);
-              e.target.value = '';
-            }}>
-              <option value="">Type</option>
-              <option value="pending">Congé payé</option>
+            <select
+              className="filter-select"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="">Type (tous)</option>
+              <option value="pending">En attente</option>
+              <option value="approved">Validé</option>
+              <option value="rejected">Décliné</option>
               <option value="public_holiday">Jour férié</option>
               <option value="sick_leave">Maladie</option>
             </select>
@@ -217,8 +278,8 @@ export default function VacationsPage() {
               e.target.value = '';
             }}>
               <option value="">Période</option>
-              <option value="pending">À venir</option>
-              <option value="approved">En attente</option>
+              <option value="upcoming">À venir</option>
+              <option value="past">Passées</option>
             </select>
           </div>
 
@@ -269,7 +330,7 @@ export default function VacationsPage() {
                     </td>
                   </tr>
                 ) : (
-                  filteredVacations.map((vacation) => (
+                  paginatedVacations.map((vacation) => (
                     <tr key={vacation.id}>
                       <td className="checkbox-col">
                         <input
@@ -289,7 +350,7 @@ export default function VacationsPage() {
                       <td>{calculateDuration(vacation.startDate, vacation.endDate)}</td>
                       <td>
                         <span className={`status-badge status-${vacation.status}`}>
-                          <span className="status-icon">{getStatusIcon(vacation.status)}</span>
+                          <span className="material-icons status-icon">{getStatusIcon(vacation.status)}</span>
                           {getStatusLabel(vacation.status)}
                         </span>
                       </td>
@@ -305,7 +366,7 @@ export default function VacationsPage() {
                           </button>
                           <button
                             className="action-btn delete-btn"
-                            onClick={() => handleDeleteVacation(vacation.id)}
+                            onClick={() => handleDeleteVacation(vacation)}
                             title="Supprimer"
                           >
                             <span className="material-icons">delete</span>
@@ -322,17 +383,30 @@ export default function VacationsPage() {
           <div className="table-footer">
             <div className="results-count">{filteredVacations.length} résultats</div>
             <div className="pagination">
-              <select className="rows-per-page">
-                <option value="10">10</option>
-                <option value="25">25</option>
-                <option value="50">50</option>
+              <select
+                className="rows-per-page"
+                value={rowsPerPage}
+                onChange={(e) => {
+                  const next = Number(e.target.value);
+                  setRowsPerPage(next);
+                  setCurrentPage(1);
+                }}
+              >
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
               </select>
               <span className="pagination-text">lignes par page</span>
               <div className="pagination-controls">
-                <button className="pagination-btn">Précédent</button>
-                <button className="pagination-btn active">1</button>
-                <button className="pagination-btn">2</button>
-                <button className="pagination-btn">Suivant</button>
+                <button className="pagination-btn" onClick={() => goToPage(safePage - 1)} disabled={safePage <= 1}>
+                  Précédent
+                </button>
+                <div className="pagination-status">
+                  Page {safePage} / {totalPages}
+                </div>
+                <button className="pagination-btn" onClick={() => goToPage(safePage + 1)} disabled={safePage >= totalPages}>
+                  Suivant
+                </button>
               </div>
             </div>
           </div>
@@ -341,13 +415,30 @@ export default function VacationsPage() {
         {showSidebar && (
           <div className="vacations-sidebar">
             <VacationSummary stats={stats} />
-            <VacationForm
-              vacation={selectedVacation}
-              onSave={handleSaveVacation}
-              onCancel={() => setSelectedVacation(null)}
-            />
           </div>
         )}
+
+        <VacationModal
+          isOpen={isVacationModalOpen}
+          onClose={() => {
+            setIsVacationModalOpen(false);
+            setSelectedVacation(null);
+          }}
+          onSave={handleSaveVacation}
+          vacation={selectedVacation}
+          mode={selectedVacation ? 'edit' : 'create'}
+        />
+
+        <DeleteConfirmModal
+          isOpen={deleteModalOpen}
+          onClose={() => {
+            setDeleteModalOpen(false);
+            setVacationToDelete(null);
+          }}
+          onConfirm={handleDeleteConfirm}
+          title="Supprimer l'absence"
+          message="Êtes-vous sûr de vouloir supprimer cette absence ? Cette action est irréversible."
+        />
       </div>
     </div>
   );
@@ -355,13 +446,13 @@ export default function VacationsPage() {
 
 function getTypeLabel(status) {
   const labels = {
-    pending: 'Congé payé',
-    approved: 'Congé payé',
-    rejected: 'Congé payé',
+    pending: 'En attente',
+    approved: 'Validé',
+    rejected: 'Décliné',
     public_holiday: 'Jour férié',
     sick_leave: 'Maladie'
   };
-  return labels[status] || 'Congé payé';
+  return labels[status] || 'En attente';
 }
 
 function getStatusLabel(status) {
@@ -377,11 +468,11 @@ function getStatusLabel(status) {
 
 function getStatusIcon(status) {
   const icons = {
-    pending: '⏱️',
-    approved: '✓',
-    rejected: '✗',
-    public_holiday: '🎉',
-    sick_leave: '🏥'
+    pending: 'schedule',
+    approved: 'check_circle',
+    rejected: 'cancel',
+    public_holiday: 'celebration',
+    sick_leave: 'medical_services'
   };
-  return icons[status] || '⏱️';
+  return icons[status] || 'schedule';
 }

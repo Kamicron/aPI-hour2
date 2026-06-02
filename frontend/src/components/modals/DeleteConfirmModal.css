@@ -15,7 +15,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(239, 68, 68, 0.1);
+  background: var(--bg-secondary);
   border-radius: var(--radius-full);
 }
 

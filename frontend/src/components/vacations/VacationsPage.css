@@ -140,6 +140,31 @@
   transition: all 0.2s ease;
 }
 
+.type-radio-group {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  flex-wrap: wrap;
+}
+
+.type-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  cursor: pointer;
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  user-select: none;
+}
+
+.type-radio input {
+  accent-color: var(--color-primary);
+}
+
 .filter-select:hover {
   border-color: var(--color-primary);
 }
@@ -283,15 +308,15 @@
 .type-pending .type-dot,
 .type-approved .type-dot,
 .type-rejected .type-dot {
-  background: #3b82f6;
+  background: var(--color-primary);
 }
 
 .type-public_holiday .type-dot {
-  background: #10b981;
+  background: var(--color-secondary);
 }
 
 .type-sick_leave .type-dot {
-  background: #f59e0b;
+  background: var(--color-info);
 }
 
 .status-badge {
@@ -304,29 +329,34 @@
   font-weight: var(--font-weight-medium);
 }
 
+.status-icon.material-icons {
+  font-size: 16px;
+  line-height: 1;
+}
+
 .status-pending {
-  background: #fef3c7;
-  color: #f59e0b;
+  background: color-mix(in srgb, var(--color-warning) 20%, transparent);
+  color: var(--color-warning);
 }
 
 .status-approved {
-  background: #d1fae5;
-  color: #10b981;
+  background: color-mix(in srgb, var(--color-success) 20%, transparent);
+  color: var(--color-success);
 }
 
 .status-rejected {
-  background: #fee2e2;
-  color: #ef4444;
+  background: color-mix(in srgb, var(--color-danger) 20%, transparent);
+  color: var(--color-danger);
 }
 
 .status-public_holiday {
-  background: #e0e7ff;
-  color: #6366f1;
+  background: color-mix(in srgb, var(--color-secondary) 20%, transparent);
+  color: var(--color-secondary);
 }
 
 .status-sick_leave {
-  background: #fef3c7;
-  color: #f59e0b;
+  background: color-mix(in srgb, var(--color-info) 20%, transparent);
+  color: var(--color-info);
 }
 
 .comment-cell {
@@ -414,6 +444,16 @@
 .pagination-controls {
   display: flex;
   gap: var(--spacing-xs);
+}
+
+.pagination-status {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  white-space: nowrap;
 }
 
 .pagination-btn {
