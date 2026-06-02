@@ -103,6 +103,7 @@ export default function LegalMention() {
             content={
               <div>
                 <p>L’éditeur s’efforce de fournir des informations aussi précises que possible, mais ne saurait garantir l’exactitude, la complétude ou l’actualisation des informations diffusées.</p>
+                <p>Le site constitue un outil d’aide et les informations affichées (y compris exports CSV/PDF) n’ont pas de valeur contractuelle ou légale. L’utilisateur demeure responsable de la vérification et de l’usage des données.</p>
               </div>
             }
           />

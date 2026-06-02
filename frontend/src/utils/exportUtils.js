@@ -162,6 +162,16 @@ export const exportToPDF = (calendarData, monthStats, currentDate) => {
 
   const doc = new jsPDF();
 
+  const disclaimerText = "Document indicatif : ce document est un outil d’aide. Les informations affichées/exportées n’ont pas de valeur contractuelle ou légale.";
+  const addDisclaimerFooter = () => {
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    doc.setFontSize(6);
+    doc.setTextColor(120);
+    doc.text(disclaimerText, pageWidth / 2, pageHeight - 10, { align: 'center', maxWidth: pageWidth - 28 });
+    doc.setTextColor(0);
+  };
+
   doc.setFontSize(18);
   doc.text('Calendrier - ' + monthName, 14, 20);
 
@@ -193,7 +203,8 @@ export const exportToPDF = (calendarData, monthStats, currentDate) => {
       theme: 'grid',
       headStyles: { fillColor: [99, 102, 241] },
       margin: { left: 14 },
-      styles: { fontSize: 10 }
+      styles: { fontSize: 10 },
+      didDrawPage: addDisclaimerFooter
     });
 
     yPosition = doc.lastAutoTable.finalY + 10;
@@ -215,7 +226,8 @@ export const exportToPDF = (calendarData, monthStats, currentDate) => {
       theme: 'striped',
       headStyles: { fillColor: [99, 102, 241] },
       margin: { left: 14 },
-      styles: { fontSize: 9 }
+      styles: { fontSize: 9 },
+      didDrawPage: addDisclaimerFooter
     });
 
     yPosition = doc.lastAutoTable.finalY + 15;
@@ -250,7 +262,8 @@ export const exportToPDF = (calendarData, monthStats, currentDate) => {
       theme: 'striped',
       headStyles: { fillColor: [99, 102, 241] },
       margin: { left: 14 },
-      styles: { fontSize: 9 }
+      styles: { fontSize: 9 },
+      didDrawPage: addDisclaimerFooter
     });
     yPosition = doc.lastAutoTable.finalY + 10;
   } else {
@@ -288,9 +301,12 @@ export const exportToPDF = (calendarData, monthStats, currentDate) => {
       theme: 'striped',
       headStyles: { fillColor: [99, 102, 241] },
       margin: { left: 14 },
-      styles: { fontSize: 9 }
+      styles: { fontSize: 9 },
+      didDrawPage: addDisclaimerFooter
     });
   }
+
+  addDisclaimerFooter();
 
   doc.save(`calendrier_${year}_${String(month).padStart(2, '0')}.pdf`);
 };
