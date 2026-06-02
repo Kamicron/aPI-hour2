@@ -272,11 +272,11 @@ export default function Calendar() {
     }
   };
 
-  const handleExport = () => {
+  const handleExport = async () => {
     if (exportFormat === 'csv') {
       exportToCSV(calendarData, monthStats, currentDate);
     } else if (exportFormat === 'pdf') {
-      exportToPDF(calendarData, monthStats, currentDate);
+      await exportToPDF(calendarData, monthStats, currentDate);
     }
   };
 

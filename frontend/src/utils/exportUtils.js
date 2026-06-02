@@ -61,6 +61,21 @@ const normalizeComment = (comment) => {
   return s.length > 500 ? s.slice(0, 500) : s;
 };
 
+const hexToRgb = (hex) => {
+  const cleaned = String(hex || '').trim().replace('#', '');
+  if (cleaned.length !== 6) return null;
+  const r = parseInt(cleaned.slice(0, 2), 16);
+  const g = parseInt(cleaned.slice(2, 4), 16);
+  const b = parseInt(cleaned.slice(4, 6), 16);
+  if ([r, g, b].some(n => Number.isNaN(n))) return null;
+  return [r, g, b];
+};
+
+const getCssVar = (name) => {
+  if (typeof window === 'undefined') return '';
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+};
+
 export const exportToCSV = (calendarData, monthStats, currentDate) => {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth() + 1;
@@ -155,27 +170,97 @@ export const exportToCSV = (calendarData, monthStats, currentDate) => {
   document.body.removeChild(link);
 };
 
-export const exportToPDF = (calendarData, monthStats, currentDate) => {
+const loadImageAsDataUrl = async (url) => {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load image: ${url}`);
+  }
+  const blob = await response.blob();
+  return await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+};
+
+export const exportToPDF = async (calendarData, monthStats, currentDate) => {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth() + 1;
   const monthName = currentDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
 
   const doc = new jsPDF();
 
+  const primaryHex = getCssVar('--color-primary') || '#0B5DFA';
+  const primaryRgb = hexToRgb(primaryHex) || [11, 93, 250];
+
+  const siteName = 'aPI-Hour';
+  const logoUrl = '/images/logo/white_api-hour.png';
+  let logoDataUrl = null;
+  try {
+    logoDataUrl = await loadImageAsDataUrl(logoUrl);
+  } catch {
+    logoDataUrl = null;
+  }
+
+  const headerHeight = 26;
+  const footerHeight = 14;
+  const contentMargin = {
+    left: 14,
+    right: 14,
+    top: headerHeight,
+    bottom: footerHeight
+  };
+
+  const titleText = 'Calendrier - ' + monthName;
   const disclaimerText = "Document indicatif : ce document est un outil d’aide. Les informations affichées/exportées n’ont pas de valeur contractuelle ou légale.";
-  const addDisclaimerFooter = () => {
+  const generatedAt = new Date();
+  const generatedAtText = `Généré le ${generatedAt.toLocaleString('fr-FR')}`;
+  const drawHeaderFooter = (pageNumber, totalPages) => {
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
+
+    if (logoDataUrl) {
+      const imgType = String(logoDataUrl).startsWith('data:image/webp') ? 'WEBP' : 'PNG';
+      doc.addImage(logoDataUrl, imgType, contentMargin.left, 8, 10, 10);
+    }
+
+    const brandX = contentMargin.left + 14;
+    doc.setFontSize(12);
+    doc.setTextColor(0);
+    doc.text('a', brandX, 14);
+    const aWidth = doc.getTextWidth('a');
+    doc.setTextColor(...primaryRgb);
+    doc.text('PI', brandX + aWidth, 14);
+    const piWidth = doc.getTextWidth('PI');
+    doc.setTextColor(0);
+    doc.text('-Hour', brandX + aWidth + piWidth, 14);
+
+    doc.setFontSize(8);
+    doc.setTextColor(120);
+    doc.text(generatedAtText, pageWidth - contentMargin.right, 14, { align: 'right' });
+    doc.setTextColor(0);
+
+    doc.setFontSize(14);
+    doc.text(titleText, pageWidth / 2, 14, { align: 'center' });
+
+    doc.setDrawColor(...primaryRgb);
+    doc.setLineWidth(0.2);
+    doc.line(contentMargin.left, headerHeight - 4, pageWidth - contentMargin.right, headerHeight - 4);
+
     doc.setFontSize(6);
     doc.setTextColor(120);
-    doc.text(disclaimerText, pageWidth / 2, pageHeight - 10, { align: 'center', maxWidth: pageWidth - 28 });
+    doc.text(disclaimerText, pageWidth / 2, pageHeight - 8, {
+      align: 'center',
+      maxWidth: pageWidth - contentMargin.left - contentMargin.right
+    });
+
+    doc.setFontSize(8);
+    doc.text(`Page ${pageNumber}/${totalPages}`, pageWidth - contentMargin.right, pageHeight - 8, { align: 'right' });
     doc.setTextColor(0);
   };
 
-  doc.setFontSize(18);
-  doc.text('Calendrier - ' + monthName, 14, 20);
-
-  let yPosition = 35;
+  let yPosition = contentMargin.top + 8;
 
   if (monthStats) {
     const overtimeBreakdown = calculateOvertimeBreakdown(monthStats);
@@ -201,10 +286,9 @@ export const exportToPDF = (calendarData, monthStats, currentDate) => {
       head: [['Indicateur', 'Valeur']],
       body: summaryData,
       theme: 'grid',
-      headStyles: { fillColor: [99, 102, 241] },
-      margin: { left: 14 },
-      styles: { fontSize: 10 },
-      didDrawPage: addDisclaimerFooter
+      headStyles: { fillColor: primaryRgb },
+      margin: contentMargin,
+      styles: { fontSize: 10 }
     });
 
     yPosition = doc.lastAutoTable.finalY + 10;
@@ -224,10 +308,9 @@ export const exportToPDF = (calendarData, monthStats, currentDate) => {
       head: [['Type de majoration', 'Heures à payer']],
       body: overtimeData,
       theme: 'striped',
-      headStyles: { fillColor: [99, 102, 241] },
-      margin: { left: 14 },
-      styles: { fontSize: 9 },
-      didDrawPage: addDisclaimerFooter
+      headStyles: { fillColor: primaryRgb },
+      margin: contentMargin,
+      styles: { fontSize: 9 }
     });
 
     yPosition = doc.lastAutoTable.finalY + 15;
@@ -260,10 +343,9 @@ export const exportToPDF = (calendarData, monthStats, currentDate) => {
       head: [['Date', 'Début', 'Fin', 'Durée', 'Pause', 'Statut', 'Commentaire']],
       body: sessionsData,
       theme: 'striped',
-      headStyles: { fillColor: [99, 102, 241] },
-      margin: { left: 14 },
-      styles: { fontSize: 9 },
-      didDrawPage: addDisclaimerFooter
+      headStyles: { fillColor: primaryRgb },
+      margin: contentMargin,
+      styles: { fontSize: 9 }
     });
     yPosition = doc.lastAutoTable.finalY + 10;
   } else {
@@ -299,14 +381,17 @@ export const exportToPDF = (calendarData, monthStats, currentDate) => {
       head: [['Date', 'Type']],
       body: vacationsData,
       theme: 'striped',
-      headStyles: { fillColor: [99, 102, 241] },
-      margin: { left: 14 },
-      styles: { fontSize: 9 },
-      didDrawPage: addDisclaimerFooter
+      headStyles: { fillColor: primaryRgb },
+      margin: contentMargin,
+      styles: { fontSize: 9 }
     });
   }
 
-  addDisclaimerFooter();
+  const totalPages = doc.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    drawHeaderFooter(i, totalPages);
+  }
 
   doc.save(`calendrier_${year}_${String(month).padStart(2, '0')}.pdf`);
 };
