@@ -40,6 +40,9 @@ export default function DayDetails({ selectedDay, onAddSession }) {
                 {session.pauseDuration && session.pauseDuration !== '00:00' && (
                   <div className="session-pause">Pause: {session.pauseDuration}</div>
                 )}
+                {session.comment && (
+                  <div className="session-comment">{session.comment}</div>
+                )}
               </div>
               <button className="session-menu-btn">
                 <span className="material-icons">more_vert</span>

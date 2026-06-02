@@ -266,6 +266,9 @@ export default function DayDetail() {
                           </span>
                         </div>
                       </div>
+                      {session.comment && (
+                        <div className="session-comment">{session.comment}</div>
+                      )}
                     </div>
                     <div className="session-actions">
                       <button

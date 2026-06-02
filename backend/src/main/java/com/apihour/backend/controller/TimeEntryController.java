@@ -19,6 +19,8 @@ import java.util.*;
 @RequestMapping("/api/time-entries")
 public class TimeEntryController {
 
+  private static final int COMMENT_MAX_LENGTH = 250;
+
   private final TimeEntryRepository timeEntryRepository;
   private final PauseRepository pauseRepository;
   private final UserSessionRepository userSessionRepository;
@@ -48,6 +50,10 @@ public class TimeEntryController {
 
       String startTimeStr = (String) request.get("startTime");
       String endTimeStr = (String) request.get("endTime");
+      String comment = (String) request.get("comment");
+      if (comment != null && comment.length() > COMMENT_MAX_LENGTH) {
+        comment = comment.substring(0, COMMENT_MAX_LENGTH);
+      }
 
       SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
       Date startTime = sdf.parse(startTimeStr);
@@ -55,6 +61,7 @@ public class TimeEntryController {
 
       TimeEntry timeEntry = new TimeEntry(userId, startTime);
       timeEntry.setEndTime(endTime);
+      timeEntry.setComment(comment);
       timeEntry = timeEntryRepository.save(timeEntry);
 
       List<Map<String, String>> pausesData = (List<Map<String, String>>) request.get("pauses");
@@ -95,6 +102,10 @@ public class TimeEntryController {
 
       String startTimeStr = (String) request.get("startTime");
       String endTimeStr = (String) request.get("endTime");
+      String comment = (String) request.get("comment");
+      if (comment != null && comment.length() > COMMENT_MAX_LENGTH) {
+        comment = comment.substring(0, COMMENT_MAX_LENGTH);
+      }
 
       SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
       Date startTime = sdf.parse(startTimeStr);
@@ -102,6 +113,7 @@ public class TimeEntryController {
 
       timeEntry.setStartTime(startTime);
       timeEntry.setEndTime(endTime);
+      timeEntry.setComment(comment);
       timeEntry = timeEntryRepository.save(timeEntry);
 
       List<Pause> existingPauses = pauseRepository.findByTimeEntryId(id);

@@ -69,8 +69,8 @@
 
 .session-info {
   display: flex;
-  flex-direction: row;
-  gap: 20px;
+  flex-direction: column;
+  gap: 4px;
   width: 100%;
 }
 
@@ -88,6 +88,18 @@
 .session-pause {
   font-size: var(--font-size-xs);
   color: var(--text-secondary);
+}
+
+.session-comment {
+  margin-top: 6px;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  line-height: 1.4;
+  white-space: pre-wrap;
 }
 
 .session-menu-btn {

@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
 import './SessionModal.css';
 
+const COMMENT_MAX_LENGTH = 250;
+
 export default function SessionModal({ isOpen, onClose, onSave, session, date }) {
   const [formData, setFormData] = useState({
     startDate: '',
     startTime: '',
     endDate: '',
     endTime: '',
-    pauses: []
+    pauses: [],
+    comment: ''
   });
 
   useEffect(() => {
@@ -34,6 +37,7 @@ export default function SessionModal({ isOpen, onClose, onSave, session, date })
         startTime: formatTime(session.startTime),
         endDate: date || formatDate(session.endTime),
         endTime: formatTime(session.endTime),
+        comment: session.comment || '',
         pauses: (session.pauses || []).map(pause => ({
           pauseDate: date || formatDate(pause.pauseStart),
           pauseStart: formatTime(pause.pauseStart),
@@ -49,7 +53,8 @@ export default function SessionModal({ isOpen, onClose, onSave, session, date })
         startTime: `${hours}:${minutes}`,
         endDate: date,
         endTime: '',
-        pauses: []
+        pauses: [],
+        comment: ''
       });
     }
   }, [session, date]);
@@ -60,6 +65,7 @@ export default function SessionModal({ isOpen, onClose, onSave, session, date })
     const combinedData = {
       startTime: `${formData.startDate}T${formData.startTime}`,
       endTime: formData.endTime ? `${formData.endDate}T${formData.endTime}` : null,
+      comment: formData.comment || '',
       pauses: formData.pauses.map(pause => ({
         pauseStart: `${pause.pauseDate}T${pause.pauseStart}`,
         pauseEnd: pause.pauseEnd ? `${pause.pauseDate}T${pause.pauseEnd}` : null
@@ -175,6 +181,20 @@ export default function SessionModal({ isOpen, onClose, onSave, session, date })
                 </button>
               </div>
             ))}
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="comment">Commentaire</label>
+            <textarea
+              id="comment"
+              value={formData.comment}
+              onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
+              maxLength={COMMENT_MAX_LENGTH}
+              rows={3}
+            />
+            <div className="textarea-counter">
+              {formData.comment.length}/{COMMENT_MAX_LENGTH}
+            </div>
           </div>
 
           <div className="modal-actions">

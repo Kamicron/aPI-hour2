@@ -323,6 +323,7 @@ public class StatsController {
         Map<String, Object> session = new HashMap<>();
         session.put("id", entry.getId());
         session.put("startTime", entry.getStartTime());
+        session.put("comment", entry.getComment());
 
         // Calculate work time for this entry
         long workMillis;
@@ -537,6 +538,7 @@ public class StatsController {
             LocalTime startTime = entry.getStartTime().toInstant()
                 .atZone(ZoneId.systemDefault()).toLocalTime();
             session.put("startTime", String.format("%02d:%02d", startTime.getHour(), startTime.getMinute()));
+            session.put("comment", entry.getComment());
 
             long workMillis;
             if (entry.getEndTime() != null) {

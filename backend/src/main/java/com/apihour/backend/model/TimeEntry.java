@@ -34,6 +34,9 @@ public class TimeEntry {
   @Column
   private Date endTime;
 
+  @Column(columnDefinition = "TEXT")
+  private String comment;
+
   public TimeEntry() {
     this.id = UUID.randomUUID().toString();
   }
@@ -99,5 +102,13 @@ public class TimeEntry {
 
   public void setEndTime(Date endTime) {
     this.endTime = endTime;
+  }
+
+  public String getComment() {
+    return comment;
+  }
+
+  public void setComment(String comment) {
+    this.comment = comment;
   }
 }

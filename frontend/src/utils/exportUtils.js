@@ -55,6 +55,12 @@ const getVacationCounts = (calendarData) => {
   };
 };
 
+const normalizeComment = (comment) => {
+  if (!comment) return '';
+  const s = String(comment);
+  return s.length > 500 ? s.slice(0, 500) : s;
+};
+
 export const exportToCSV = (calendarData, monthStats, currentDate) => {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth() + 1;
@@ -86,7 +92,7 @@ export const exportToCSV = (calendarData, monthStats, currentDate) => {
   }
 
   csvRows.push(['Détail des sessions']);
-  csvRows.push(['Date', 'Heure début', 'Heure fin', 'Durée', 'Pause', 'Statut']);
+  csvRows.push(['Date', 'Heure début', 'Heure fin', 'Durée', 'Pause', 'Statut', 'Commentaire']);
 
   const daysWithSessions = calendarData.filter(day => day.sessions && day.sessions.length > 0);
 
@@ -98,7 +104,8 @@ export const exportToCSV = (calendarData, monthStats, currentDate) => {
         session.endTime || '',
         session.duration || '',
         session.pauseDuration || '00:00',
-        session.status === 'ongoing' ? 'En cours' : 'Terminé'
+        session.status === 'ongoing' ? 'En cours' : 'Terminé',
+        normalizeComment(session.comment)
       ]);
     });
   });
@@ -229,7 +236,8 @@ export const exportToPDF = (calendarData, monthStats, currentDate) => {
         session.endTime || '',
         session.duration || '',
         session.pauseDuration || '00:00',
-        session.status === 'ongoing' ? 'En cours' : 'Terminé'
+        session.status === 'ongoing' ? 'En cours' : 'Terminé',
+        normalizeComment(session.comment)
       ]);
     });
   });
@@ -237,7 +245,7 @@ export const exportToPDF = (calendarData, monthStats, currentDate) => {
   if (sessionsData.length > 0) {
     autoTable(doc, {
       startY: yPosition,
-      head: [['Date', 'Début', 'Fin', 'Durée', 'Pause', 'Statut']],
+      head: [['Date', 'Début', 'Fin', 'Durée', 'Pause', 'Statut', 'Commentaire']],
       body: sessionsData,
       theme: 'striped',
       headStyles: { fillColor: [99, 102, 241] },
