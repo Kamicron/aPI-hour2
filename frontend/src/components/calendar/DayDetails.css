@@ -121,6 +121,54 @@
   font-size: 18px;
 }
 
+.session-menu {
+  position: relative;
+}
+
+.session-menu-popup {
+  position: absolute;
+  top: 28px;
+  right: 0;
+  min-width: 140px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  padding: 6px;
+  z-index: 10;
+}
+
+.session-menu-item {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.session-menu-item:hover {
+  background: var(--bg-tertiary);
+}
+
+.session-menu-item .material-icons {
+  font-size: 18px;
+}
+
+.session-menu-item.danger {
+  color: #ef4444;
+}
+
+.session-menu-item.danger:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
 .no-sessions-message {
   text-align: center;
   padding: var(--spacing-xl) var(--spacing-md);

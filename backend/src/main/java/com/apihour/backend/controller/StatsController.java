@@ -535,6 +535,8 @@ public class StatsController {
           for (TimeEntry entry : dayEntries) {
             Map<String, Object> session = new HashMap<>();
 
+            session.put("id", entry.getId());
+
             LocalTime startTime = entry.getStartTime().toInstant()
                 .atZone(ZoneId.systemDefault()).toLocalTime();
             session.put("startTime", String.format("%02d:%02d", startTime.getHour(), startTime.getMinute()));

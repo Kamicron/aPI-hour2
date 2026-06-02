@@ -4,6 +4,8 @@ import DashboardLayout from '../components/dashboard/DashboardLayout';
 import CalendarGrid from '../components/calendar/CalendarGrid';
 import MonthSummary from '../components/calendar/MonthSummary';
 import DayDetails from '../components/calendar/DayDetails';
+import SessionModal from '../components/modals/SessionModal';
+import DeleteConfirmModal from '../components/modals/DeleteConfirmModal';
 import { exportToCSV, exportToPDF } from '../utils/exportUtils';
 import './Calendar.css';
 
@@ -28,6 +30,10 @@ export default function Calendar() {
   const [viewMode, setViewMode] = useState('month');
   const [loading, setLoading] = useState(true);
   const [exportFormat, setExportFormat] = useState('csv');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingSession, setEditingSession] = useState(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [sessionToDelete, setSessionToDelete] = useState(null);
   const requestAbortRef = useRef(null);
   const cacheRef = useRef(new Map());
 
@@ -114,6 +120,14 @@ export default function Calendar() {
     }
   };
 
+  const refreshCalendarData = () => {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth() + 1;
+    const cacheKey = `${year}-${String(month).padStart(2, '0')}`;
+    cacheRef.current.delete(cacheKey);
+    fetchCalendarData();
+  };
+
   const changeMonth = (delta) => {
     const next = new Date(currentDate.getFullYear(), currentDate.getMonth() + delta, 1);
     setCurrentDate(next);
@@ -150,7 +164,112 @@ export default function Calendar() {
   };
 
   const handleAddSession = () => {
-    alert('Fonctionnalité d\'ajout de session à venir');
+    if (!selectedDay?.fullDate) return;
+    setEditingSession(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEditSession = async (session) => {
+    if (!session?.id) return;
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:8080/api/time-entries/${session.id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        console.error('Failed to fetch time entry details');
+        setEditingSession({
+          ...session,
+          pauses: session?.pauses || [],
+          comment: session?.comment || ''
+        });
+        setIsModalOpen(true);
+        return;
+      }
+
+      const data = await response.json();
+      const timeEntry = data?.timeEntry;
+      const pauses = data?.pauses || [];
+
+      setEditingSession({
+        ...(timeEntry || session),
+        pauses,
+        comment: timeEntry?.comment ?? session?.comment ?? ''
+      });
+      setIsModalOpen(true);
+    } catch (error) {
+      console.error('Error fetching time entry details:', error);
+      setEditingSession({
+        ...session,
+        pauses: session?.pauses || [],
+        comment: session?.comment || ''
+      });
+      setIsModalOpen(true);
+    }
+  };
+
+  const handleSaveSession = async (formData) => {
+    if (!selectedDay?.fullDate) return;
+    try {
+      const token = localStorage.getItem('token');
+      const url = editingSession
+        ? `http://localhost:8080/api/time-entries/${editingSession.id}`
+        : 'http://localhost:8080/api/time-entries';
+      const method = editingSession ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
+
+      if (response.ok) {
+        setIsModalOpen(false);
+        setEditingSession(null);
+        refreshCalendarData();
+      } else {
+        const errorText = await response.text();
+        console.error('Failed to save session:', response.status, errorText);
+      }
+    } catch (error) {
+      console.error('Error saving session:', error);
+    }
+  };
+
+  const handleDeleteSession = (session) => {
+    setSessionToDelete(session);
+    setDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!sessionToDelete?.id) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:8080/api/time-entries/${sessionToDelete.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        setDeleteModalOpen(false);
+        setSessionToDelete(null);
+        refreshCalendarData();
+      } else {
+        const errorText = await response.text();
+        console.error('Failed to delete session:', response.status, errorText);
+      }
+    } catch (error) {
+      console.error('Error deleting session:', error);
+    }
   };
 
   const handleExport = () => {
@@ -201,7 +320,34 @@ export default function Calendar() {
               </button>
             </div>
 
-            <DayDetails selectedDay={selectedDay} onAddSession={handleAddSession} />
+            <DayDetails
+              selectedDay={selectedDay}
+              onAddSession={handleAddSession}
+              onEditSession={handleEditSession}
+              onDeleteSession={handleDeleteSession}
+            />
+
+            <SessionModal
+              isOpen={isModalOpen}
+              onClose={() => {
+                setIsModalOpen(false);
+                setEditingSession(null);
+              }}
+              onSave={handleSaveSession}
+              session={editingSession}
+              date={selectedDay?.fullDate}
+            />
+
+            <DeleteConfirmModal
+              isOpen={deleteModalOpen}
+              onClose={() => {
+                setDeleteModalOpen(false);
+                setSessionToDelete(null);
+              }}
+              onConfirm={handleDeleteConfirm}
+              title="Supprimer la session"
+              message="Êtes-vous sûr de vouloir supprimer cette session ? Cette action est irréversible."
+            />
 
             {loading && (
               <div className="calendar-loading-overlay">

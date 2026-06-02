@@ -1,12 +1,30 @@
+import { useEffect, useRef, useState } from 'react';
 import './DayDetails.css';
 
-export default function DayDetails({ selectedDay, onAddSession }) {
+export default function DayDetails({ selectedDay, onAddSession, onEditSession, onDeleteSession }) {
   if (!selectedDay) return null;
+
+  const [menuOpenIndex, setMenuOpenIndex] = useState(null);
+  const menuContainerRef = useRef(null);
 
   const formatTime = (timeStr) => {
     if (!timeStr) return '';
     return timeStr;
   };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!menuContainerRef.current) return;
+      if (!menuContainerRef.current.contains(event.target)) {
+        setMenuOpenIndex(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   return (
     <div className="day-details">
@@ -23,7 +41,7 @@ export default function DayDetails({ selectedDay, onAddSession }) {
       <div className="details-date">{selectedDay.fullDate}</div>
       <div className="details-total">Total : {selectedDay.totalDuration}</div>
 
-      <div className="details-sessions">
+      <div className="details-sessions" ref={menuContainerRef}>
         {selectedDay.sessions && selectedDay.sessions.length > 0 ? (
           selectedDay.sessions.map((session, idx) => (
             <div key={idx} className="detail-session">
@@ -44,9 +62,39 @@ export default function DayDetails({ selectedDay, onAddSession }) {
                   <div className="session-comment">{session.comment}</div>
                 )}
               </div>
-              <button className="session-menu-btn">
-                <span className="material-icons">more_vert</span>
-              </button>
+              <div className="session-menu">
+                <button
+                  className="session-menu-btn"
+                  onClick={() => setMenuOpenIndex(menuOpenIndex === idx ? null : idx)}
+                  title="Actions"
+                >
+                  <span className="material-icons">more_vert</span>
+                </button>
+                {menuOpenIndex === idx && (
+                  <div className="session-menu-popup">
+                    <button
+                      className="session-menu-item"
+                      onClick={() => {
+                        setMenuOpenIndex(null);
+                        onEditSession?.(session);
+                      }}
+                    >
+                      <span className="material-icons">edit</span>
+                      Éditer
+                    </button>
+                    <button
+                      className="session-menu-item danger"
+                      onClick={() => {
+                        setMenuOpenIndex(null);
+                        onDeleteSession?.(session);
+                      }}
+                    >
+                      <span className="material-icons">delete</span>
+                      Supprimer
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           ))
         ) : (
