@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import AuthBranding from '../components/auth/AuthBranding';
 import AuthTabs from '../components/auth/AuthTabs';
 import LoginForm from '../components/auth/LoginForm';
@@ -215,11 +215,9 @@ export default function AuthPage() {
           </div>
 
           <footer className="auth-footer">
-            <a href="#confidentialite">Confidentialité</a>
+            <Link to="/legal-mention">Mentions légales</Link>
             <span>•</span>
-            <a href="#cgu">CGU</a>
-            <span>•</span>
-            <a href="#support">Support</a>
+            <a href="mailto:ludovic.chevroulet@outlook.fr">Support</a>
           </footer>
         </div>
       </div>

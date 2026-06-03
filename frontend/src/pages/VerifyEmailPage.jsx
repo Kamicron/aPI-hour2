@@ -114,11 +114,9 @@ export default function VerifyEmailPage() {
           </div>
 
           <footer className="auth-footer">
-            <a href="#confidentialite">Confidentialité</a>
+            <Link to="/legal-mention">Mentions légales</Link>
             <span>•</span>
-            <a href="#cgu">CGU</a>
-            <span>•</span>
-            <a href="#support">Support</a>
+            <a href="mailto:ludovic.chevroulet@outlook.fr">Support</a>
           </footer>
         </div>
       </div>

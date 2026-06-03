@@ -7,7 +7,8 @@ import './Sidebar.css';
 export default function Sidebar() {
   const location = useLocation();
   const { theme } = useTheme();
-  const { logout } = useAuth();
+  const { logout, isAuthenticated } = useAuth();
+  const authenticated = isAuthenticated();
 
   const menuItems = [
     {
@@ -67,10 +68,17 @@ export default function Sidebar() {
       </nav>
 
       <div className="sidebar-footer">
-        <div className="sidebar-help" onClick={logout}>
-          <span className="material-icons help-icon">logout</span>
-          <span className="help-text">Déconnexion</span>
-        </div>
+        {authenticated ? (
+          <div className="sidebar-help" onClick={logout}>
+            <span className="material-icons help-icon">logout</span>
+            <span className="help-text">Déconnexion</span>
+          </div>
+        ) : (
+          <div className="sidebar-help" onClick={() => (window.location.href = '/login')}>
+            <span className="material-icons help-icon">login</span>
+            <span className="help-text">Connexion</span>
+          </div>
+        )}
 
         <div className="sidebar-help" onClick={() => window.location.href = '/legal-mention'}>
           <span className="material-icons help-icon">description</span>
