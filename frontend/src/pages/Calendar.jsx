@@ -215,7 +215,7 @@ export default function Calendar() {
   };
 
   return (
-    <DashboardLayout contentClassName="no-scroll">
+    <DashboardLayout>
       <div className="calendar-page">
         <div className="calendar-container">
           <div className="calendar-section">

@@ -16,9 +16,7 @@
 }
 
 .calendar-page {
-  height: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: visible;
   padding: var(--spacing-xl) 0;
 }
 
