@@ -20,6 +20,13 @@ public class EmailService {
   @Value("${app.frontend.url}")
   private String frontendUrl;
 
+  private String normalizeBaseUrl(String baseUrl) {
+    if (baseUrl == null) {
+      return "";
+    }
+    return baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
+  }
+
   public EmailService(JavaMailSender mailSender) {
     this.mailSender = mailSender;
   }
@@ -31,7 +38,7 @@ public class EmailService {
       message.setTo(toEmail);
       message.setSubject("Réinitialisation de votre mot de passe - aPI-Hour");
 
-      String resetLink = frontendUrl + "/reset-password?token=" + resetToken;
+      String resetLink = normalizeBaseUrl(frontendUrl) + "/reset-password?token=" + resetToken;
 
       String emailBody = String.format(
           "Bonjour,\n\n" +
@@ -62,7 +69,7 @@ public class EmailService {
       message.setTo(toEmail);
       message.setSubject("Vérifiez votre adresse email - aPI-Hour");
 
-      String verificationLink = frontendUrl + "/verify-email?token=" + verificationToken;
+      String verificationLink = normalizeBaseUrl(frontendUrl) + "/verify-email?token=" + verificationToken;
 
       String emailBody = String.format(
           "Bonjour %s,\n\n" +
@@ -104,7 +111,7 @@ public class EmailService {
               "Cordialement,\n" +
               "L'équipe aPI-Hour",
           userName,
-          frontendUrl);
+          normalizeBaseUrl(frontendUrl));
 
       message.setText(emailBody);
 

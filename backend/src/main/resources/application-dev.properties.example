@@ -10,3 +10,6 @@ spring.datasource.password=votre_mot_de_passe
 # Configuration JPA (optionnel - déjà défini dans application.properties)
 # spring.jpa.hibernate.ddl-auto=update
 # spring.jpa.show-sql=true
+
+# App Configuration
+app.frontend.url=http://localhost:5173

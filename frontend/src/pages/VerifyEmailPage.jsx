@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import AuthBranding from '../components/auth/AuthBranding';
 import { useTheme } from '../context/ThemeContext';
 import { authService } from '../services/authService';

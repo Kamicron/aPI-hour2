@@ -21,3 +21,6 @@ spring.datasource.hikari.connection-timeout=30000
 
 # Server Configuration
 server.servlet.session.persistent=false
+
+# App Configuration
+app.frontend.url=http://localhost:5173
