@@ -432,13 +432,19 @@ public class StatsController {
       LocalDate lastOfMonth = firstOfMonth.withDayOfMonth(firstOfMonth.lengthOfMonth());
 
       LocalDate periodStart = firstOfMonth.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+      // periodEnd is kept on the last complete Sunday for overtime calculations
+      // (sliding weeks)
       LocalDate periodEnd = lastOfMonth.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
+      // calendarEnd extends to the actual end of the month so the last days are
+      // visible/editable
+      LocalDate calendarEnd = lastOfMonth;
 
       Date periodStartDate = Date.from(periodStart.atStartOfDay(ZoneId.systemDefault()).toInstant());
-      Date periodEndDate = Date.from(periodEnd.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant());
+      Date calendarEndDate = Date.from(calendarEnd.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant());
 
-      // Get all entries for the period
-      List<TimeEntry> allEntries = timeEntryRepository.findByUserIdAndStartTimeBetween(userId, periodStartDate, periodEndDate);
+      // Get all entries for the calendar view (includes trailing days of the month)
+      List<TimeEntry> allEntries = timeEntryRepository.findByUserIdAndStartTimeBetween(userId, periodStartDate,
+          calendarEndDate);
 
       List<String> timeEntryIds = new ArrayList<>();
       for (TimeEntry entry : allEntries) {
@@ -483,12 +489,12 @@ public class StatsController {
           LocalDate vacStart = vacation.getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
           LocalDate vacEnd = vacation.getEndDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
-          if (vacEnd.isBefore(periodStart) || vacStart.isAfter(periodEnd)) {
+          if (vacEnd.isBefore(periodStart) || vacStart.isAfter(calendarEnd)) {
             continue;
           }
 
           LocalDate start = vacStart.isBefore(periodStart) ? periodStart : vacStart;
-          LocalDate end = vacEnd.isAfter(periodEnd) ? periodEnd : vacEnd;
+          LocalDate end = vacEnd.isAfter(calendarEnd) ? calendarEnd : vacEnd;
 
           LocalDate d = start;
           while (!d.isAfter(end)) {
@@ -505,9 +511,9 @@ public class StatsController {
       double totalVacationHours = 0.0;
       Map<LocalDate, Double> effectiveHoursByDay = new HashMap<>();
 
-      // Iterate through all days in the period
+      // Iterate through all days in the calendar view
       LocalDate currentDate = periodStart;
-      while (!currentDate.isAfter(periodEnd)) {
+      while (!currentDate.isAfter(calendarEnd)) {
         String dateStr = currentDate.toString();
         List<TimeEntry> dayEntries = entriesByDay.getOrDefault(dateStr, new ArrayList<>());
 
@@ -585,12 +591,15 @@ public class StatsController {
           int dayTotalMinutes = (int) (netDayWorkMillis / (1000 * 60));
           dayData.put("totalDuration", String.format("%02d:%02d", dayTotalMinutes / 60, dayTotalMinutes % 60));
 
-          totalMonthWorkMillis += dayWorkMillis;
-          totalMonthPauseMillis += dayPauseMillis;
+          // Monthly stats are kept on sliding weeks (periodStart..periodEnd)
+          if (!currentDate.isAfter(periodEnd)) {
+            totalMonthWorkMillis += dayWorkMillis;
+            totalMonthPauseMillis += dayPauseMillis;
+            totalVacationHours += vacationHoursForDay;
 
-          double workedHoursForDay = netDayWorkMillis / (1000.0 * 60 * 60);
-          effectiveHoursByDay.put(currentDate, workedHoursForDay + vacationHoursForDay);
-          totalVacationHours += vacationHoursForDay;
+            double workedHoursForDay = netDayWorkMillis / (1000.0 * 60 * 60);
+            effectiveHoursByDay.put(currentDate, workedHoursForDay + vacationHoursForDay);
+          }
 
           daysData.add(dayData);
         }
@@ -607,7 +616,7 @@ public class StatsController {
       int totalMinutes = (int) ((totalHours - totalHoursInt) * 60);
       monthStats.put("totalHours", String.format("%dh %02dm", totalHoursInt, totalMinutes));
 
-      // Calculate goal based on working days in the period
+      // Calculate goal based on working days in the sliding-week period
       int workingDays = 0;
       LocalDate date = periodStart;
       while (!date.isAfter(periodEnd)) {
