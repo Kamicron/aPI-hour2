@@ -22,19 +22,13 @@ export default function WeekHistory() {
     try {
       const response = await axiosInstance.get('/stats/week-history');
       const data = response.data;
-      console.log('Week history data received:', data);
-      console.log('Data is array:', Array.isArray(data));
-      console.log('Data length:', data.length);
       if (data.length > 0) {
-        console.log('First item:', data[0]);
       }
       setWeekData(data);
-      console.log('State updated with data');
     } catch (error) {
       console.error('Error fetching week history:', error);
     } finally {
       setLoading(false);
-      console.log('Loading set to false');
     }
   };
 

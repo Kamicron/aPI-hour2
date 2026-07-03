@@ -23,14 +23,12 @@ export default function Settings() {
 
   const fetchUserData = async () => {
     if (!user || !user.id) {
-      console.log('No user or user.id');
       return;
     }
 
     try {
       const response = await axiosInstance.get(`/users/${user.id}`);
       const userData = response.data;
-      console.log('User data from backend:', userData);
 
       // workingDays est une String "1,2,3,4,5" dans le backend
       // On le convertit en tableau [1,2,3,4,5]
@@ -45,7 +43,6 @@ export default function Settings() {
         workingDays: workingDaysArray
       };
 
-      console.log('Formatted form data:', formattedData);
       const currentToken = localStorage.getItem('token');
       login(currentToken, userData);
       setFormData(formattedData);
@@ -94,7 +91,6 @@ export default function Settings() {
     setLoading(true);
     setMessage({ type: '', text: '' });
 
-    console.log('Updating profile with:', { email: formData.email, userId: user.id });
 
     try {
       await axiosInstance.put(`/users/${user.id}`, {
@@ -150,7 +146,6 @@ export default function Settings() {
     setLoading(true);
     setMessage({ type: '', text: '' });
 
-    console.log('Updating goal with:', formData.weeklyHoursGoal, 'userId:', user.id);
 
     try {
       await axiosInstance.put(`/users/${user.id}`, {
@@ -180,7 +175,6 @@ export default function Settings() {
     setLoading(true);
     setMessage({ type: '', text: '' });
 
-    console.log('Updating working days with:', formData.workingDays.length, 'userId:', user.id);
 
     try {
       await axiosInstance.put(`/users/${user.id}`, {

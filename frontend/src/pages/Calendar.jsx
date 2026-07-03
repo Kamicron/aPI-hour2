@@ -83,7 +83,6 @@ export default function Calendar() {
         return;
       }
 
-      console.log('Fetching calendar for:', year, month);
 
       const response = await axiosInstance.get(`/stats/calendar/${year}/${month}`);
       const data = response.data;
