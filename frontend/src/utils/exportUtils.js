@@ -213,7 +213,6 @@ export const exportToPDF = async (calendarData, monthStats, currentDate) => {
   };
 
   const titleText = 'Calendrier - ' + monthName;
-  const disclaimerText = "Document indicatif : ce document est un outil d’aide. Les informations affichées/exportées n’ont pas de valeur contractuelle ou légale.";
   const generatedAt = new Date();
   const generatedAtText = `Généré le ${generatedAt.toLocaleString('fr-FR')}`;
   const drawHeaderFooter = (pageNumber, totalPages) => {
@@ -248,14 +247,8 @@ export const exportToPDF = async (calendarData, monthStats, currentDate) => {
     doc.setLineWidth(0.2);
     doc.line(contentMargin.left, headerHeight - 4, pageWidth - contentMargin.right, headerHeight - 4);
 
-    doc.setFontSize(6);
-    doc.setTextColor(120);
-    doc.text(disclaimerText, pageWidth / 2, pageHeight - 8, {
-      align: 'center',
-      maxWidth: pageWidth - contentMargin.left - contentMargin.right
-    });
-
     doc.setFontSize(8);
+    doc.setTextColor(120);
     doc.text(`Page ${pageNumber}/${totalPages}`, pageWidth - contentMargin.right, pageHeight - 8, { align: 'right' });
     doc.setTextColor(0);
   };
