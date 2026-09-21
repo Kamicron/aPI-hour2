@@ -76,14 +76,16 @@ const getCssVar = (name) => {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 };
 
-export const exportToCSV = (calendarData, monthStats, currentDate) => {
+export const exportToCSV = (calendarData, monthStats, currentDate, options = {}) => {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth() + 1;
   const monthName = currentDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+  const title = options.title || monthName;
+  const fileSuffix = options.fileSuffix || `${year}_${String(month).padStart(2, '0')}`;
 
   const csvRows = [];
 
-  csvRows.push(['Export Calendrier - ' + monthName]);
+  csvRows.push(['Export Calendrier - ' + title]);
   csvRows.push([]);
 
   if (monthStats) {
@@ -163,7 +165,7 @@ export const exportToCSV = (calendarData, monthStats, currentDate) => {
   const url = URL.createObjectURL(blob);
 
   link.setAttribute('href', url);
-  link.setAttribute('download', `calendrier_${year}_${String(month).padStart(2, '0')}.csv`);
+  link.setAttribute('download', `calendrier_${fileSuffix}.csv`);
   link.style.visibility = 'hidden';
   document.body.appendChild(link);
   link.click();
@@ -184,10 +186,12 @@ const loadImageAsDataUrl = async (url) => {
   });
 };
 
-export const exportToPDF = async (calendarData, monthStats, currentDate) => {
+export const exportToPDF = async (calendarData, monthStats, currentDate, options = {}) => {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth() + 1;
   const monthName = currentDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+  const title = options.title || monthName;
+  const fileSuffix = options.fileSuffix || `${year}_${String(month).padStart(2, '0')}`;
 
   const doc = new jsPDF();
 
@@ -212,7 +216,7 @@ export const exportToPDF = async (calendarData, monthStats, currentDate) => {
     bottom: footerHeight
   };
 
-  const titleText = 'Calendrier - ' + monthName;
+  const titleText = 'Calendrier - ' + title;
   const generatedAt = new Date();
   const generatedAtText = `Généré le ${generatedAt.toLocaleString('fr-FR')}`;
   const drawHeaderFooter = (pageNumber, totalPages) => {
@@ -386,5 +390,5 @@ export const exportToPDF = async (calendarData, monthStats, currentDate) => {
     drawHeaderFooter(i, totalPages);
   }
 
-  doc.save(`calendrier_${year}_${String(month).padStart(2, '0')}.pdf`);
+  doc.save(`calendrier_${fileSuffix}.pdf`);
 };
