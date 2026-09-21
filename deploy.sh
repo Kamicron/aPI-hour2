@@ -18,6 +18,13 @@ SITE_BACK="https://apihour2back.pi-cto.top"
 
 log() { printf '\n\033[36m== %s ==\033[0m\n' "$*"; }
 
+# Le run precedent peut avoir laisse backend/ appartenir a $SVC_USER (voir
+# deploy_back) : on reprend la main dessus avant le pull, sinon git ne peut
+# pas ecraser les fichiers suivis (erreur "Permission non accordee").
+if [ -d "$REPO/backend" ]; then
+    sudo chown -R "$(id -un):$(id -gn)" "$REPO/backend"
+fi
+
 log "git pull"
 git -C "$REPO" pull --ff-only
 
