@@ -207,7 +207,7 @@ export const exportToPDF = async (calendarData, monthStats, currentDate, options
     logoDataUrl = null;
   }
 
-  const headerHeight = 26;
+  const headerHeight = 30;
   const footerHeight = 14;
   const contentMargin = {
     left: 14,
@@ -231,21 +231,29 @@ export const exportToPDF = async (calendarData, monthStats, currentDate, options
     const brandX = contentMargin.left + 14;
     doc.setFontSize(12);
     doc.setTextColor(0);
-    doc.text('a', brandX, 14);
+    doc.text('a', brandX, 12);
     const aWidth = doc.getTextWidth('a');
     doc.setTextColor(...primaryRgb);
-    doc.text('PI', brandX + aWidth, 14);
+    doc.text('PI', brandX + aWidth, 12);
     const piWidth = doc.getTextWidth('PI');
     doc.setTextColor(0);
-    doc.text('-Hour', brandX + aWidth + piWidth, 14);
+    doc.text('-Hour', brandX + aWidth + piWidth, 12);
 
     doc.setFontSize(8);
     doc.setTextColor(120);
-    doc.text(generatedAtText, pageWidth - contentMargin.right, 14, { align: 'right' });
+    doc.text(generatedAtText, pageWidth - contentMargin.right, 12, { align: 'right' });
     doc.setTextColor(0);
 
-    doc.setFontSize(14);
-    doc.text(titleText, pageWidth / 2, 14, { align: 'center' });
+    // Le titre a sa propre ligne (une plage de dates personnalisée peut être
+    // longue) ; sa taille se réduit si besoin pour ne jamais dépasser la page.
+    const maxTitleWidth = pageWidth - contentMargin.left - contentMargin.right;
+    let titleFontSize = 14;
+    doc.setFontSize(titleFontSize);
+    while (doc.getTextWidth(titleText) > maxTitleWidth && titleFontSize > 9) {
+      titleFontSize -= 1;
+      doc.setFontSize(titleFontSize);
+    }
+    doc.text(titleText, pageWidth / 2, 21, { align: 'center', maxWidth: maxTitleWidth });
 
     doc.setDrawColor(...primaryRgb);
     doc.setLineWidth(0.2);
