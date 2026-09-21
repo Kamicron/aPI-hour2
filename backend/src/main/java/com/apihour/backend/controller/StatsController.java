@@ -424,9 +424,6 @@ public class StatsController {
         return ResponseEntity.notFound().build();
       }
 
-      int weeklyGoal = user.getWeeklyHoursGoal() != null ? user.getWeeklyHoursGoal() : 40;
-      int dailyGoal = weeklyGoal / 5;
-
       // Calculate period boundaries (full weeks: Monday to Sunday)
       LocalDate firstOfMonth = LocalDate.of(year, month, 1);
       LocalDate lastOfMonth = firstOfMonth.withDayOfMonth(firstOfMonth.lengthOfMonth());
@@ -438,6 +435,51 @@ public class StatsController {
       // calendarEnd extends to the actual end of the month so the last days are
       // visible/editable
       LocalDate calendarEnd = lastOfMonth;
+
+      return buildCalendarPeriodResponse(userId, user, periodStart, periodEnd, calendarEnd);
+    } catch (Exception e) {
+      e.printStackTrace();
+      return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+    }
+  }
+
+  @GetMapping("/range")
+  public ResponseEntity<?> getRangeData(@RequestParam String startDate, @RequestParam String endDate) {
+    try {
+      String userId = getUserIdFromAuth();
+      Users user = usersRepository.findById(UUID.fromString(userId)).orElse(null);
+
+      if (user == null) {
+        return ResponseEntity.notFound().build();
+      }
+
+      LocalDate periodStart;
+      LocalDate periodEnd;
+      try {
+        periodStart = LocalDate.parse(startDate);
+        periodEnd = LocalDate.parse(endDate);
+      } catch (Exception e) {
+        return ResponseEntity.badRequest().body(Map.of("error", "Format de date invalide (attendu yyyy-MM-dd)"));
+      }
+
+      if (periodEnd.isBefore(periodStart)) {
+        return ResponseEntity.badRequest().body(Map.of("error", "La date de fin doit être postérieure à la date de début"));
+      }
+
+      // Custom range: stats and displayed days are the exact requested period,
+      // no alignment to calendar weeks/months.
+      return buildCalendarPeriodResponse(userId, user, periodStart, periodEnd, periodEnd);
+    } catch (Exception e) {
+      e.printStackTrace();
+      return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+    }
+  }
+
+  private ResponseEntity<?> buildCalendarPeriodResponse(String userId, Users user, LocalDate periodStart,
+      LocalDate periodEnd, LocalDate calendarEnd) {
+    try {
+      int weeklyGoal = user.getWeeklyHoursGoal() != null ? user.getWeeklyHoursGoal() : 40;
+      int dailyGoal = weeklyGoal / 5;
 
       Date periodStartDate = Date.from(periodStart.atStartOfDay(ZoneId.systemDefault()).toInstant());
       Date calendarEndDate = Date.from(calendarEnd.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant());

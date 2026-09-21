@@ -31,6 +31,11 @@ export default function Calendar() {
   const [viewMode, setViewMode] = useState('month');
   const [loading, setLoading] = useState(true);
   const [exportFormat, setExportFormat] = useState('csv');
+  const [exportMode, setExportMode] = useState('month');
+  const [rangeStart, setRangeStart] = useState('');
+  const [rangeEnd, setRangeEnd] = useState('');
+  const [exportError, setExportError] = useState('');
+  const [exporting, setExporting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSession, setEditingSession] = useState(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -206,10 +211,49 @@ export default function Calendar() {
   };
 
   const handleExport = async () => {
-    if (exportFormat === 'csv') {
-      exportToCSV(calendarData, monthStats, currentDate);
-    } else if (exportFormat === 'pdf') {
-      await exportToPDF(calendarData, monthStats, currentDate);
+    setExportError('');
+
+    if (exportMode === 'month') {
+      if (exportFormat === 'csv') {
+        exportToCSV(calendarData, monthStats, currentDate);
+      } else if (exportFormat === 'pdf') {
+        await exportToPDF(calendarData, monthStats, currentDate);
+      }
+      return;
+    }
+
+    if (!rangeStart || !rangeEnd) {
+      setExportError('Merci de sélectionner une date de début et une date de fin.');
+      return;
+    }
+    if (rangeStart > rangeEnd) {
+      setExportError('La date de début doit être antérieure à la date de fin.');
+      return;
+    }
+
+    setExporting(true);
+    try {
+      const response = await axiosInstance.get('/stats/range', {
+        params: { startDate: rangeStart, endDate: rangeEnd }
+      });
+      const data = response.data;
+      const formatDate = (d) => new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+      const options = {
+        title: `${formatDate(rangeStart)} au ${formatDate(rangeEnd)}`,
+        fileSuffix: `${rangeStart}_${rangeEnd}`
+      };
+      const rangeDate = new Date(rangeStart);
+
+      if (exportFormat === 'csv') {
+        exportToCSV(data.days || [], data.monthStats, rangeDate, options);
+      } else if (exportFormat === 'pdf') {
+        await exportToPDF(data.days || [], data.monthStats, rangeDate, options);
+      }
+    } catch (error) {
+      console.error('Error exporting custom range:', error);
+      setExportError("Erreur lors de la génération de l'export pour cette période.");
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -243,13 +287,59 @@ export default function Calendar() {
                 <span className="material-icons">download</span>
                 <h3>Export</h3>
               </div>
+
+              <div className="export-mode-toggle">
+                <label className="export-mode-option">
+                  <input
+                    type="radio"
+                    name="exportMode"
+                    value="month"
+                    checked={exportMode === 'month'}
+                    onChange={() => { setExportMode('month'); setExportError(''); }}
+                  />
+                  Mois en cours
+                </label>
+                <label className="export-mode-option">
+                  <input
+                    type="radio"
+                    name="exportMode"
+                    value="range"
+                    checked={exportMode === 'range'}
+                    onChange={() => { setExportMode('range'); setExportError(''); }}
+                  />
+                  Plage de dates
+                </label>
+              </div>
+
+              {exportMode === 'range' && (
+                <div className="export-range-inputs">
+                  <input
+                    type="date"
+                    className="export-date-input"
+                    value={rangeStart}
+                    max={rangeEnd || undefined}
+                    onChange={(e) => setRangeStart(e.target.value)}
+                  />
+                  <span className="export-range-separator">au</span>
+                  <input
+                    type="date"
+                    className="export-date-input"
+                    value={rangeEnd}
+                    min={rangeStart || undefined}
+                    onChange={(e) => setRangeEnd(e.target.value)}
+                  />
+                </div>
+              )}
+
+              {exportError && <p className="export-error">{exportError}</p>}
+
               <select className="export-format" value={exportFormat} onChange={(e) => setExportFormat(e.target.value)}>
                 <option value="csv">CSV</option>
                 <option value="pdf">PDF</option>
               </select>
-              <button className="export-btn" onClick={handleExport}>
+              <button className="export-btn" onClick={handleExport} disabled={exporting}>
                 <span className="material-icons">file_download</span>
-                Exporter
+                {exporting ? 'Génération...' : 'Exporter'}
               </button>
             </div>
 
