@@ -1,0 +1,60 @@
+server {
+    server_name apihour2.pi-cto.top;
+
+    root /var/www/apihour2;
+    index index.html;
+
+    gzip on;
+    gzip_vary on;
+    gzip_comp_level 6;
+    gzip_min_length 256;
+    gzip_types
+        text/plain
+        text/css
+        text/xml
+        application/json
+        application/javascript
+        application/xml+rss
+        image/svg+xml;
+
+    # Fichiers buildés par Vite (index-<hash>.js/css) : le hash change dès que le
+    # contenu change -> cache "immutable" un an, sans risque de servir du stale.
+    location /assets/ {
+        add_header Cache-Control "public, max-age=31536000, immutable";
+        try_files $uri =404;
+    }
+
+    # Icônes/logo à la racine : pas de hash dans le nom -> cache plus court pour
+    # pouvoir les mettre à jour sans renommer le fichier.
+    location ~* \.(?:png|webp|svg|ico)$ {
+        add_header Cache-Control "public, max-age=604800";
+        try_files $uri =404;
+    }
+
+    # Coquille SPA : jamais mise en cache, pour toujours pointer vers les derniers
+    # fichiers hashés dans /assets/.
+    location = /index.html {
+        add_header Cache-Control "no-cache";
+    }
+
+    location / {
+        try_files $uri $uri/ /index.html;   # routing SPA
+    }
+
+    listen [::]:443 ssl; # managed by Certbot
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/apihour2.pi-cto.top/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/apihour2.pi-cto.top/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+}
+server {
+    if ($host = apihour2.pi-cto.top) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+    listen 80;
+    listen [::]:80;
+    server_name apihour2.pi-cto.top;
+    return 404; # managed by Certbot
+}
