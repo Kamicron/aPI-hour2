@@ -231,7 +231,7 @@ private fun DayDetails(date: LocalDate, data: DayData?) {
             }
         }
         val total = data?.totalDuration
-        if (total != null && data.sessions.size > 1) {
+        if (data != null && total != null && data.sessions.size > 1) {
             HorizontalDivider()
             Row(Modifier.fillMaxWidth()) {
                 Text("Total", Modifier.weight(1f), fontWeight = FontWeight.Bold)
