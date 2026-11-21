@@ -5,25 +5,33 @@
       .\build-release.ps1          -> genere dist\api-hour-release.aab (a envoyer sur la Play Console)
       .\build-release.ps1 -Apk     -> genere aussi dist\api-hour-release.apk (installable sur ton telephone)
 
-  Les cles de signature sont rangees HORS du depot, dans -KeystoreDir
-  (par defaut : Documents\Ludovic\Keystore). Au premier lancement, le script :
-    - te propose de reutiliser une cle deja presente dans ce dossier, ou
-    - en cree une nouvelle (apihour-release.jks) dans ce dossier,
-  puis ecrit android\keystore.properties (ignore par git) qui pointe vers elle.
+  Convention de stockage des cles (comme aPI-birthday), HORS du depot :
+      Documents\Ludovic\Keystore\aPI-hour\apihour-release.jks
+      Documents\Ludovic\Keystore\aPI-hour\keystore.properties.sauvegarde
 
-  SAUVEGARDE le .jks et son mot de passe : sans eux, impossible de mettre l'app a jour
-  avec la meme cle.
+  - Premier lancement : cree la cle + la sauvegarde dans ce dossier, puis ecrit
+    android\keystore.properties (ignore par git).
+  - Nouveau clone / nouveau PC : si keystore.properties manque mais que la sauvegarde
+    existe, elle est restauree automatiquement.
+
+  Sans le .jks et son mot de passe, impossible de mettre l'app a jour avec la meme cle :
+  garde une copie du dossier aPI-hour ailleurs (cle USB...).
 
   Si l'execution est bloquee :
       powershell -ExecutionPolicy Bypass -File .\build-release.ps1
 #>
 param(
     [switch]$Apk,
-    [string]$KeystoreDir = (Join-Path $env:USERPROFILE 'Documents\Ludovic\Keystore')
+    [string]$KeystoreRoot = (Join-Path $env:USERPROFILE 'Documents\Ludovic\Keystore'),
+    [string]$ProjectFolder = 'aPI-hour'
 )
 
 $ErrorActionPreference = 'Stop'
 Set-Location -LiteralPath $PSScriptRoot
+
+$KeystoreDir = Join-Path $KeystoreRoot $ProjectFolder
+$JksName = 'apihour-release.jks'
+$BackupName = 'keystore.properties.sauvegarde'
 
 function Fail($msg) { Write-Host "ERREUR : $msg" -ForegroundColor Red; exit 1 }
 function Step($msg) { Write-Host "`n==> $msg" -ForegroundColor Cyan }
@@ -62,63 +70,55 @@ if (-not (Test-Path 'local.properties')) {
 }
 
 # ---------- 3. Cle de signature ----------
+$backupPath = Join-Path $KeystoreDir $BackupName
+$jksPath = Join-Path $KeystoreDir $JksName
+
 if (Test-Path 'keystore.properties') {
     Write-Host "`nCle de signature deja configuree (keystore.properties)"
-} else {
-    Step "Configuration de la cle de signature (une seule fois)"
+}
+elseif (Test-Path $backupPath) {
+    Step "Restauration de keystore.properties depuis la sauvegarde"
+    # Si storeFile n'est pas un chemin absolu, on le resout par rapport au dossier de la cle.
+    $lines = Get-Content -LiteralPath $backupPath | ForEach-Object {
+        if ($_ -match '^storeFile=(.+)$') {
+            $v = $Matches[1].Trim()
+            if (-not [System.IO.Path]::IsPathRooted($v)) {
+                $v = ((Join-Path $KeystoreDir $v) -replace '\\', '/')
+            }
+            "storeFile=$v"
+        } else { $_ }
+    }
+    $lines | Set-Content -Path 'keystore.properties' -Encoding ASCII
+    Write-Host "Restaure depuis : $backupPath"
+}
+else {
+    Step "Creation de la cle de signature (une seule fois)"
+    if (Test-Path $jksPath) { Fail "$jksPath existe deja mais sans sauvegarde. Recree $BackupName a la main (storeFile, storePassword, keyAlias, keyPassword)." }
     New-Item -ItemType Directory -Force -Path $KeystoreDir | Out-Null
     Write-Host "Dossier des cles : $KeystoreDir"
+    Write-Host "Choisis un mot de passe solide et NOTE-LE."
 
-    # Reutiliser une cle existante ?
-    $storeFile = $null
-    $existing = @(Get-ChildItem -LiteralPath $KeystoreDir -File -ErrorAction SilentlyContinue |
-        Where-Object { $_.Extension -in '.jks', '.keystore', '.p12', '.pfx' })
-    if ($existing.Count -gt 0) {
-        Write-Host "Cles trouvees :"
-        for ($i = 0; $i -lt $existing.Count; $i++) { Write-Host ("  [{0}] {1}" -f ($i + 1), $existing[$i].Name) }
-        $choice = Read-Host "Numero de la cle a reutiliser, ou Entree pour en creer une nouvelle pour API Hour"
-        if ($choice -match '^\d+$' -and [int]$choice -ge 1 -and [int]$choice -le $existing.Count) {
-            $storeFile = $existing[[int]$choice - 1].FullName
-        }
-    }
+    $storePass = Read-Plain "Mot de passe de la cle"
+    $confirm = Read-Plain "Confirme le mot de passe"
+    if ($storePass -ne $confirm) { Fail "Les mots de passe ne correspondent pas." }
+    if ($storePass.Length -lt 8) { Fail "Mot de passe trop court (8 caracteres minimum)." }
+    $alias = 'apihour'
 
-    if ($storeFile) {
-        # --- Reutilisation d'une cle existante ---
-        $storePass = Read-Plain "Mot de passe du keystore"
-        Write-Host "`nAlias disponibles :"
-        & $keytool -list -keystore $storeFile -storepass $storePass 2>&1 |
-            Where-Object { $_ -match 'PrivateKeyEntry|trustedCertEntry' }
-        $alias = Read-Host "Alias de la cle a utiliser"
-        if (-not $alias) { Fail "Alias requis." }
-        $keyPass = Read-Plain "Mot de passe de la cle (Entree = identique au keystore)"
-        if (-not $keyPass) { $keyPass = $storePass }
-    } else {
-        # --- Creation d'une nouvelle cle ---
-        $storeFile = Join-Path $KeystoreDir 'apihour-release.jks'
-        if (Test-Path $storeFile) { Fail "$storeFile existe deja. Relance et choisis-le dans la liste." }
-        Write-Host "Choisis un mot de passe solide et NOTE-LE."
-        $storePass = Read-Plain "Mot de passe de la cle"
-        $confirm = Read-Plain "Confirme le mot de passe"
-        if ($storePass -ne $confirm) { Fail "Les mots de passe ne correspondent pas." }
-        if ($storePass.Length -lt 8) { Fail "Mot de passe trop court (8 caracteres minimum)." }
-        $alias = 'apihour'
-        $keyPass = $storePass
+    & $keytool -genkeypair -v -keystore $jksPath -alias $alias -keyalg RSA -keysize 2048 -validity 10000 `
+        -storepass $storePass -keypass $storePass -dname "CN=API Hour, O=API Hour, C=FR"
+    if ($LASTEXITCODE -ne 0) { Fail "keytool a echoue." }
 
-        & $keytool -genkeypair -v -keystore $storeFile -alias $alias -keyalg RSA -keysize 2048 -validity 10000 `
-            -storepass $storePass -keypass $keyPass -dname "CN=API Hour, O=API Hour, C=FR"
-        if ($LASTEXITCODE -ne 0) { Fail "keytool a echoue." }
-        Write-Host "`nCle creee : $storeFile" -ForegroundColor Yellow
-        Write-Host "SAUVEGARDE-LA (avec son mot de passe) hors de ce PC." -ForegroundColor Yellow
-    }
-
-    $storePath = $storeFile -replace '\\', '/'
     @(
-        "storeFile=$storePath",
+        "storeFile=$($jksPath -replace '\\', '/')",
         "storePassword=$storePass",
         "keyAlias=$alias",
-        "keyPassword=$keyPass"
+        "keyPassword=$storePass"
     ) | Set-Content -Path 'keystore.properties' -Encoding ASCII
-    Write-Host "keystore.properties ecrit (ignore par git)."
+    Copy-Item 'keystore.properties' $backupPath -Force
+
+    Write-Host "`nCle creee : $jksPath" -ForegroundColor Yellow
+    Write-Host "Sauvegarde : $backupPath" -ForegroundColor Yellow
+    Write-Host "Copie le dossier $KeystoreDir hors de ce PC (cle USB...)." -ForegroundColor Yellow
 }
 
 # ---------- 4. Build ----------
