@@ -57,7 +57,9 @@ public class SessionController {
           .orElse(null);
 
       if (session == null) {
-        return ResponseEntity.ok(Map.of("session", (Object) null));
+        Map<String, Object> empty = new HashMap<>();
+        empty.put("session", null);
+        return ResponseEntity.ok(empty);
       }
 
       TimeEntry timeEntry = timeEntryRepository.findById(session.getTimeEntryId()).orElse(null);
@@ -73,7 +75,7 @@ public class SessionController {
 
       return ResponseEntity.ok(response);
     } catch (Exception e) {
-      return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+      return ResponseEntity.internalServerError().body(Map.of("error", String.valueOf(e.getMessage())));
     }
   }
 
@@ -103,7 +105,7 @@ public class SessionController {
 
       return ResponseEntity.ok(response);
     } catch (Exception e) {
-      return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+      return ResponseEntity.internalServerError().body(Map.of("error", String.valueOf(e.getMessage())));
     }
   }
 
@@ -137,7 +139,7 @@ public class SessionController {
 
       return ResponseEntity.ok(response);
     } catch (Exception e) {
-      return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+      return ResponseEntity.internalServerError().body(Map.of("error", String.valueOf(e.getMessage())));
     }
   }
 
@@ -176,7 +178,7 @@ public class SessionController {
 
       return ResponseEntity.ok(response);
     } catch (Exception e) {
-      return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+      return ResponseEntity.internalServerError().body(Map.of("error", String.valueOf(e.getMessage())));
     }
   }
 
@@ -211,7 +213,7 @@ public class SessionController {
 
       return ResponseEntity.ok(Map.of("message", "Session terminée"));
     } catch (Exception e) {
-      return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+      return ResponseEntity.internalServerError().body(Map.of("error", String.valueOf(e.getMessage())));
     }
   }
 }

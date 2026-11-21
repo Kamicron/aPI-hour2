@@ -84,7 +84,7 @@ public class TimeEntryController {
 
       return ResponseEntity.ok(response);
     } catch (Exception e) {
-      return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+      return ResponseEntity.internalServerError().body(Map.of("error", String.valueOf(e.getMessage())));
     }
   }
 
@@ -141,7 +141,7 @@ public class TimeEntryController {
 
       return ResponseEntity.ok(response);
     } catch (Exception e) {
-      return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+      return ResponseEntity.internalServerError().body(Map.of("error", String.valueOf(e.getMessage())));
     }
   }
 
@@ -173,7 +173,7 @@ public class TimeEntryController {
 
       return ResponseEntity.ok(Map.of("message", "TimeEntry deleted successfully"));
     } catch (Exception e) {
-      return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+      return ResponseEntity.internalServerError().body(Map.of("error", String.valueOf(e.getMessage())));
     }
   }
 
@@ -197,7 +197,7 @@ public class TimeEntryController {
 
       return ResponseEntity.ok(response);
     } catch (Exception e) {
-      return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+      return ResponseEntity.internalServerError().body(Map.of("error", String.valueOf(e.getMessage())));
     }
   }
 }

@@ -193,7 +193,7 @@ public class StatsController {
 
       return ResponseEntity.ok(response);
     } catch (Exception e) {
-      return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+      return ResponseEntity.internalServerError().body(Map.of("error", String.valueOf(e.getMessage())));
     }
   }
 
@@ -283,7 +283,7 @@ public class StatsController {
 
       return ResponseEntity.ok(response);
     } catch (Exception e) {
-      return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+      return ResponseEntity.internalServerError().body(Map.of("error", String.valueOf(e.getMessage())));
     }
   }
 
@@ -410,7 +410,7 @@ public class StatsController {
       return ResponseEntity.ok(response);
     } catch (Exception e) {
       e.printStackTrace();
-      return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+      return ResponseEntity.internalServerError().body(Map.of("error", String.valueOf(e.getMessage())));
     }
   }
 
@@ -439,7 +439,7 @@ public class StatsController {
       return buildCalendarPeriodResponse(userId, user, periodStart, periodEnd, calendarEnd);
     } catch (Exception e) {
       e.printStackTrace();
-      return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+      return ResponseEntity.internalServerError().body(Map.of("error", String.valueOf(e.getMessage())));
     }
   }
 
@@ -471,7 +471,7 @@ public class StatsController {
       return buildCalendarPeriodResponse(userId, user, periodStart, periodEnd, periodEnd);
     } catch (Exception e) {
       e.printStackTrace();
-      return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+      return ResponseEntity.internalServerError().body(Map.of("error", String.valueOf(e.getMessage())));
     }
   }
 
@@ -757,7 +757,7 @@ public class StatsController {
       return ResponseEntity.ok(response);
     } catch (Exception e) {
       e.printStackTrace();
-      return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+      return ResponseEntity.internalServerError().body(Map.of("error", String.valueOf(e.getMessage())));
     }
   }
 
@@ -904,7 +904,7 @@ public class StatsController {
 
       return ResponseEntity.ok(weekData);
     } catch (Exception e) {
-      return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+      return ResponseEntity.internalServerError().body(Map.of("error", String.valueOf(e.getMessage())));
     }
   }
 }
