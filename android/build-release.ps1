@@ -96,12 +96,12 @@ else {
     if (Test-Path $jksPath) { Fail "$jksPath existe deja mais sans sauvegarde. Recree $BackupName a la main (storeFile, storePassword, keyAlias, keyPassword)." }
     New-Item -ItemType Directory -Force -Path $KeystoreDir | Out-Null
     Write-Host "Dossier des cles : $KeystoreDir"
-    Write-Host "Choisis un mot de passe solide et NOTE-LE."
-
-    $storePass = Read-Plain "Mot de passe de la cle"
-    $confirm = Read-Plain "Confirme le mot de passe"
-    if ($storePass -ne $confirm) { Fail "Les mots de passe ne correspondent pas." }
-    if ($storePass.Length -lt 8) { Fail "Mot de passe trop court (8 caracteres minimum)." }
+    # Mot de passe aleatoire (24 caracteres, sans caracteres ambigus), aucune saisie.
+    $chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789'.ToCharArray()
+    $rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+    $bytes = New-Object byte[] 24
+    $rng.GetBytes($bytes)
+    $storePass = -join ($bytes | ForEach-Object { $chars[$_ % $chars.Length] })
     $alias = 'apihour'
 
     & $keytool -genkeypair -v -keystore $jksPath -alias $alias -keyalg RSA -keysize 2048 -validity 10000 `
@@ -118,6 +118,9 @@ else {
 
     Write-Host "`nCle creee : $jksPath" -ForegroundColor Yellow
     Write-Host "Sauvegarde : $backupPath" -ForegroundColor Yellow
+    Write-Host "Mot de passe genere : $storePass" -ForegroundColor Yellow
+    Write-Host "(il est aussi dans la sauvegarde ci-dessus : rien a retenir)"
+    try { Set-Clipboard -Value $storePass; Write-Host "(copie dans le presse-papiers du PC)" } catch { }
     Write-Host "Copie le dossier $KeystoreDir hors de ce PC (cle USB...)." -ForegroundColor Yellow
 }
 
