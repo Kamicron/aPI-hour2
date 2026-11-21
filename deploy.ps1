@@ -41,7 +41,10 @@ if (-not $NoPush) {
 }
 
 Write-Host "== Deploiement '$Target' sur $ServerHost ==" -ForegroundColor Cyan
-& ssh -t $ServerHost "cd /opt/apihour2 && git pull --ff-only && bash deploy.sh $Target"
+# Le run precedent laisse backend/ au compte du service : on reprend la main
+# avant le pull, sinon git ne peut pas ecraser les fichiers suivis.
+$remoteCmd = 'cd /opt/apihour2 && sudo chown -R "$(id -un):$(id -gn)" backend && git pull --ff-only && bash deploy.sh ' + $Target
+& ssh -t $ServerHost $remoteCmd
 $rc = $LASTEXITCODE
 
 Write-Host ""
