@@ -56,6 +56,21 @@ public class JwtUtils {
     return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
   }
 
+  /** Diagnostic sans donnees sensibles : pourquoi un token est refuse. */
+  public String diagnose(String token, UserDetails userDetails) {
+    try {
+      String subject = extractUsername(token);
+      Date exp = extractExpiration(token);
+      Date iat = extractClaim(token, Claims::getIssuedAt);
+      return "sujetIdentique=" + subject.equals(userDetails.getUsername())
+          + " sujetIdentiqueSansCasse=" + subject.equalsIgnoreCase(userDetails.getUsername())
+          + " expire=" + exp.before(new Date())
+          + " iat=" + iat + " exp=" + exp + " maintenant=" + new Date();
+    } catch (Exception e) {
+      return "diagnostic impossible : " + e;
+    }
+  }
+
   public String extractUsername(String token) {
     return extractClaim(token, Claims::getSubject);
   }

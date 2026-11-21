@@ -62,7 +62,7 @@ public class JwtFilter extends OncePerRequestFilter {
           authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
           SecurityContextHolder.getContext().setAuthentication(authToken);
         } else {
-          log.warn("JWT non valide pour {} (sujet ou expiration)", request.getRequestURI());
+          log.warn("JWT non valide pour {} : {}", request.getRequestURI(), jwtUtil.diagnose(jwtToken, userDetails));
         }
       } catch (Exception e) {
         // Erreur de validation - on continue sans authentification
