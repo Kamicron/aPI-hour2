@@ -8,5 +8,7 @@ captures/
 .cxx/
 *.apk
 *.aab
+keystore.properties
+dist/
 *.jks
 *.keystore
