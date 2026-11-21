@@ -90,8 +90,11 @@ public class AuthController {
           new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword()));
       if (authentication.isAuthenticated()) {
         Users existingUserForToken = userRepository.findByEmail(user.getEmail());
-        String accessToken = jwtUtils.generateToken(user.getEmail());
-        String refreshToken = jwtUtils.generateRefreshToken(user.getEmail());
+        // On signe avec l'email tel qu'il est enregistre, pas tel qu'il a ete saisi
+        // (la casse peut differer, notamment avec un clavier mobile).
+        String tokenSubject = existingUserForToken != null ? existingUserForToken.getEmail() : user.getEmail();
+        String accessToken = jwtUtils.generateToken(tokenSubject);
+        String refreshToken = jwtUtils.generateRefreshToken(tokenSubject);
 
         existingUserForToken.setRefreshToken(refreshToken);
         existingUserForToken.setRefreshTokenExpiry(new Date(System.currentTimeMillis() + 604800000));
