@@ -31,8 +31,8 @@ android {
         applicationId = "com.apihour.android"
         minSdk = 31 // Android 12+ : couleurs dynamiques Material You
         targetSdk = 37
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 2 // a incrementer a chaque envoi sur la Play Console
+        versionName = "0.1.1"
 
         // L'URL doit se terminer par "/" (exigence Retrofit).
         buildConfigField("String", "API_BASE_URL", "\"https://apihour2back.pi-cto.top/api/\"")
